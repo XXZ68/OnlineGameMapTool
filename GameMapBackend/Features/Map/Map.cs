@@ -1,14 +1,30 @@
-public class Map
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using GameMapBackend.Features.Grid;
+using GameMapBackend.Features.Spell;
+using GameMapBackend.Features.Token;
+
+namespace GameMapBackend.Features.Map;
+
+[Table("Maps")]
+public class MapEntity
 {
-    public int Id { get; set; }
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-    public string FileName { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(150)]
+    public string Title { get; set; } = string.Empty;
 
-    public string FilePath { get; set; } = string.Empty;
+    [Required]
+    public string ImageUrl { get; set; } = string.Empty;
 
-    public int Width { get; set; }
+    public int WidthInPixels { get; set; }
+    public int HeightInPixels { get; set; }
 
-    public int Height { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public Grid? Grid { get; set; }
+    public GridEntity? Grid { get; set; }
+    public List<MapTokenEntity> Tokens { get; set; } = new();
+    public List<ActiveSpellEffectEntity> ActiveSpells { get; set; } = new();
 }

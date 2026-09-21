@@ -1,90 +1,57 @@
 using Microsoft.EntityFrameworkCore;
+using GameMapBackend.Features.Character;
+using GameMapBackend.Features.Compendium;
+using GameMapBackend.Features.GameSession;
+using GameMapBackend.Features.Grid;
+using GameMapBackend.Features.Map;
+using GameMapBackend.Features.Spell;
+using GameMapBackend.Features.Token;
 
-public AppDbContext(DbContextOptions<AppDbContext> options)
-    : base(options)
+namespace GameMapBackend.Data;
+
+public class AppDbContext : DbContext
 {
-}
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-public DbSet<Map> Map => Set<Map>();
+    public DbSet<MapEntity> Maps => Set<MapEntity>();
+    public DbSet<GridEntity> Grids => Set<GridEntity>();
+    public DbSet<GameSessionEntity> GameSessions => Set<GameSessionEntity>();
+    public DbSet<SessionParticipantEntity> SessionParticipants => Set<SessionParticipantEntity>();
 
-public DbSet<Grid> Grids => Set<Grid>();
+    public DbSet<CharacterEntity> Characters => Set<CharacterEntity>();
+    public DbSet<MapTokenEntity> MapTokens => Set<MapTokenEntity>();
+    public DbSet<ActiveSpellEffectEntity> ActiveSpellEffects => Set<ActiveSpellEffectEntity>();
 
-public DbSet<GridCell> GridCells => Set<GridCell>();
+    public DbSet<DndSpellEntity> Spells => Set<DndSpellEntity>();
+    public DbSet<DndMonsterEntity> Monsters => Set<DndMonsterEntity>();
+    public DbSet<DndClassEntity> Classes => Set<DndClassEntity>();
+    public DbSet<DndRaceEntity> Races => Set<DndRaceEntity>();
+    public DbSet<DndConditionEntity> Conditions => Set<DndConditionEntity>();
 
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    base.OnModelCreating(modelBuilder);
-
-    // =========================
-    // MapImage
-    // =========================
-
-    modelBuilder.Entity<Map>(entity =>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        entity.ToTable("map");
+        base.OnModelCreating(modelBuilder);
 
-        entity.HasKey(x => x.Id);
-
-        entity.Property(x => x.FileName)
-            .IsRequired();
-
-        entity.Property(x => x.FilePath)
-            .IsRequired();
-
-        entity.Property(x => x.Width)
-            .IsRequired();
-
-        entity.Property(x => x.Height)
-            .IsRequired();
-    });
-
-    // =========================
-    // Grid
-    // =========================
-
-    modelBuilder.Entity<Grid>(entity =>
-    {
-        entity.ToTable("grids");
-
-        entity.HasKey(x => x.Id);
-
-        entity.HasOne(x => x.Map)
-            .WithOne(x => x.Grid)
-            .HasForeignKey<Grid>(x => x.MapId)
+        modelBuilder.Entity<MapEntity>()
+            .HasOne(m => m.Grid)
+            .WithOne(g => g.Map)
+            .HasForeignKey<GridEntity>(g => g.MapId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.Property(x => x.Rows)
-            .IsRequired();
-
-        entity.Property(x => x.Columns)
-            .IsRequired();
-    });
-
-    // =========================
-    // GridCell
-    // =========================
-
-    modelBuilder.Entity<GridCell>(entity =>
-    {
-        entity.ToTable("grid_cells");
-
-        entity.HasKey(x => x.Id);
-
-        entity.HasOne(x => x.Grid)
-            .WithMany(x => x.GridCell)
-            .HasForeignKey(x => x.GridId)
+        modelBuilder.Entity<MapEntity>()
+            .HasMany(m => m.Tokens)
+            .WithOne(t => t.Map)
+            .HasForeignKey(t => t.MapId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity.Property(x => x.Coordinate)
-            .IsRequired();
+        modelBuilder.Entity<MapEntity>()
+            .HasMany(m => m.ActiveSpells)
+            .WithOne(s => s.Map)
+            .HasForeignKey(s => s.MapId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Eine Koordinate darf innerhalb
-        // eines Rasters nur einmal existieren.
-        entity.HasIndex(x => new
-        {
-            x.GridId,
-            x.Coordinate
-        })
-        .IsUnique();
-    });
+        modelBuilder.Entity<GameSessionEntity>()
+            .HasIndex(s => s.JoinCode)
+            .IsUnique();
+    }
 }

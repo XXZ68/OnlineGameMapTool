@@ -1,22 +1,29 @@
-public class Grid
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using GameMapBackend.Features.Map;
+
+namespace GameMapBackend.Features.Grid;
+
+[Table("Grids")]
+public class GridEntity
 {
-    public int Id { get; set; }
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-    public int MapId { get; set; }
+    [Required]
+    public Guid MapId { get; set; }
 
-    public Map Map { get; set; } = null!;
+    [ForeignKey(nameof(MapId))]
+    public MapEntity? Map { get; set; }
 
-    public int Rows { get; set; }
+    public int CellSizeInPixels { get; set; } = 70;
+    public int Columns { get; set; } = 28;
+    public int Rows { get; set; } = 28;
 
-    public int Columns { get; set; }
+    [MaxLength(20)]
+    public string LineColor { get; set; } = "#000000";
+    public double LineOpacity { get; set; } = 0.4;
 
-    // Position des Rasters auf dem Bild
-    public double OffsetX { get; set; }
-
-    public double OffsetY { get; set; }
-
-    // Größe des Rasters
-    public double Width { get; set; }
-
-    public double Height { get; set; }
+    public int OffsetX { get; set; } = 0;
+    public int OffsetY { get; set; } = 0;
 }
