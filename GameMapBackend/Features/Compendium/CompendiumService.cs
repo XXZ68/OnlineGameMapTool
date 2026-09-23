@@ -33,7 +33,7 @@ public class CompendiumService : ICompendiumService
         if (!string.IsNullOrWhiteSpace(query)) q = q.Where(s => s.Name.ToLower().Contains(query.ToLower()));
         if (level.HasValue) q = q.Where(s => s.Level == level.Value);
 
-        return await q.Take(50).Select(s => new CompendiumSpellDto(s.Index, s.Name, s.Level, s.Range, s.Duration, s.Concentration)).ToListAsync();
+        return await q.Select(s => new CompendiumSpellDto(s.Index, s.Name, s.Level, s.Range, s.Duration, s.Concentration)).ToListAsync();
     }
 
     public async Task<List<CompendiumMonsterDto>> SearchMonstersAsync(string? query)
@@ -41,7 +41,7 @@ public class CompendiumService : ICompendiumService
         var q = _context.Monsters.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(query)) q = q.Where(m => m.Name.ToLower().Contains(query.ToLower()));
 
-        return await q.Take(50).Select(m => new CompendiumMonsterDto(m.Index, m.Name, m.Size, m.Type, m.ArmorClass, m.HitPoints, m.ChallengeRating)).ToListAsync();
+        return await q.Select(m => new CompendiumMonsterDto(m.Index, m.Name, m.Size, m.Type, m.ArmorClass, m.HitPoints, m.ChallengeRating)).ToListAsync();
     }
 
     public async Task<List<CompendiumConditionDto>> GetConditionsAsync() =>
