@@ -1,4 +1,5 @@
 
+import TextInput from './Input';
 import Modal from './Modal';
 
 export default function CreateGame({ isOpen, onClose }) {
@@ -9,7 +10,7 @@ export default function CreateGame({ isOpen, onClose }) {
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         <div>
           <p className="block text-sm font-medium text-gray-700">Lobby Name</p>
-          <input 
+          <TextInput 
             type="text" 
             className="mt-1 block w-full rounded border-gray-300 shadow-sm p-2 border" 
             placeholder="My Awesome Game" 
