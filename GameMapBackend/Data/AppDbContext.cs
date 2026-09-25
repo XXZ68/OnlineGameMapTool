@@ -6,6 +6,7 @@ using GameMapBackend.Features.Grid;
 using GameMapBackend.Features.Map;
 using GameMapBackend.Features.Spell;
 using GameMapBackend.Features.Token;
+using GameMapBackend.Features.User;
 
 namespace GameMapBackend.Data;
 
@@ -13,6 +14,8 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    public DbSet<UserEntity> Users => Set<UserEntity>();
+    public DbSet<SessionMapEntity> SessionMaps => Set<SessionMapEntity>();
     public DbSet<MapEntity> Maps => Set<MapEntity>();
     public DbSet<GridEntity> Grids => Set<GridEntity>();
     public DbSet<GameSessionEntity> GameSessions => Set<GameSessionEntity>();

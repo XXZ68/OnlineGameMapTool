@@ -5,7 +5,7 @@ namespace GameMapBackend.Features.Token;
 
 public interface ITokenService
 {
-    Task<List<MapTokenDto>> GetTokensByMapAsync(Guid mapId);
+    Task<List<MapTokenDto>> GetTokensByMapAsync(Guid mapId, Guid sessionId);
     Task<MapTokenDto?> PlaceCharacterTokenAsync(Guid mapId, PlaceCharacterTokenDto dto);
     Task<MapTokenDto?> SpawnMonsterTokenAsync(Guid mapId, SpawnMonsterTokenDto dto);
     Task<MapTokenDto?> MoveTokenAsync(Guid tokenId, int targetX, int targetY);
@@ -22,14 +22,15 @@ public class TokenService : ITokenService
         _context = context;
     }
 
-    public async Task<List<MapTokenDto>> GetTokensByMapAsync(Guid mapId)
+    public async Task<List<MapTokenDto>> GetTokensByMapAsync(Guid mapId, Guid sessionId)
     {
         return await _context.MapTokens
-            .AsNoTracking()
-            .Where(t => t.MapId == mapId)
+        .AsNoTracking()
+            .Where(t => t.MapId == mapId && t.GameSessionId == sessionId)
             .Select(t => MapToDto(t))
             .ToListAsync();
     }
+
 
     public async Task<MapTokenDto?> PlaceCharacterTokenAsync(Guid mapId, PlaceCharacterTokenDto dto)
     {
@@ -39,6 +40,7 @@ public class TokenService : ITokenService
         var token = new MapTokenEntity
         {
             MapId = mapId,
+            GameSessionId = dto.GameSessionId,
             CharacterId = character.Id,
             Name = character.Name,
             TokenImageUrl = character.TokenImageUrl,
@@ -135,6 +137,7 @@ public class TokenService : ITokenService
         t.Id,
         t.MapId,
         t.CharacterId,
+        t.GameSessionId,
         t.MonsterIndex,
         t.Name,
         t.TokenImageUrl,

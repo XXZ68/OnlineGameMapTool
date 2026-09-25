@@ -72,6 +72,7 @@ public class MapService : IMapService
                 t.Id,
                 t.MapId,
                 t.CharacterId,
+                t.GameSessionId,
                 t.MonsterIndex,
                 t.Name,
                 t.TokenImageUrl,

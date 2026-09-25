@@ -56,6 +56,21 @@ public class GameSessionController : ControllerBase
         return Ok(session);
     }
 
+
+    [HttpPost("{sessionId:guid}/add-map/{mapId:guid}")]
+    public async Task<IActionResult> AddMapToSession(Guid sessionId, Guid mapId)
+    {
+        try
+        {
+            var sessionMapId = await _sessionService.CopyMapToSessionAsync(sessionId, mapId);
+            return Ok(new { SessionMapId = sessionMapId });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
     /// <summary>
     /// Switches the currently displayed battlemap for all players in the session.
     /// </summary>

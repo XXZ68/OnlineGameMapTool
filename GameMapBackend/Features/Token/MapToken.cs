@@ -18,6 +18,7 @@ public class MapTokenEntity
     public MapEntity? Map { get; set; }
 
     public Guid? CharacterId { get; set; }
+    public Guid GameSessionId { get; set; }
 
     [ForeignKey(nameof(CharacterId))]
     public CharacterEntity? Character { get; set; }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using GameMapBackend.Data;
+using GameMapBackend.Features.Map;
 
 namespace GameMapBackend.Features.GameSession;
 
@@ -8,6 +9,7 @@ public interface IGameSessionService
     Task<GameSessionDto> CreateSessionAsync(CreateSessionDto dto);
     Task<GameSessionDto?> GetSessionByIdAsync(Guid sessionId);
     Task<GameSessionDto?> JoinSessionAsync(JoinSessionDto dto);
+    Task<Guid> CopyMapToSessionAsync(Guid sessionId, Guid mapId);
     Task<bool> SwitchActiveMapAsync(Guid sessionId, Guid newMapId);
 }
 
@@ -78,6 +80,38 @@ public class GameSessionService : IGameSessionService
         }
 
         return MapToDto(session);
+    }
+
+    public async Task<Guid> CopyMapToSessionAsync(Guid sessionId, Guid mapId)
+    {
+        var session = await _context.GameSessions.FindAsync(sessionId);
+        var originalMap = await _context.Maps
+            .Include(m => m.Grid)
+            .FirstOrDefaultAsync(m => m.Id == mapId);
+
+        if (session == null)
+            throw new KeyNotFoundException("Spiel-Sitzung nicht gefunden.");
+        
+        if (originalMap == null)
+            throw new KeyNotFoundException("Original-Map in der Bibliothek nicht gefunden.");
+
+        var sessionMap = new SessionMapEntity
+        {
+            GameSessionId = sessionId,
+            OriginalMapId = mapId,
+            Title = originalMap.Title,
+            ImageUrl = originalMap.ImageUrl,
+            GridJson = System.Text.Json.JsonSerializer.Serialize(originalMap.Grid),
+            TokensJson = "[]"
+        };
+
+        _context.SessionMaps.Add(sessionMap);
+        await _context.SaveChangesAsync();
+
+        session.ActiveMapId = sessionMap.Id;
+        await _context.SaveChangesAsync();
+
+        return sessionMap.Id;
     }
 
     public async Task<bool> SwitchActiveMapAsync(Guid sessionId, Guid newMapId)

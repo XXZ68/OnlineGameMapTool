@@ -8,6 +8,7 @@ using GameMapBackend.Features.Grid;
 using GameMapBackend.Features.Map;
 using GameMapBackend.Features.Spell;
 using GameMapBackend.Features.Token;
+using GameMapBackend.Features.User;
 using GameMapBackend.Hubs;
 using Microsoft.OpenApi;
 
@@ -49,6 +50,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IMapService, MapService>();
 builder.Services.AddScoped<IGridService, GridService>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();

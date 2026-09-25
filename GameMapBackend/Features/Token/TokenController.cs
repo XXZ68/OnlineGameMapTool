@@ -24,9 +24,10 @@ public class TokenController : ControllerBase
     /// Retrieves all active tokens currently placed on the specified battlemap.
     /// </summary>
     /// <param name="mapId">The unique identifier of the map.</param>
+    /// <param name="sessionId">The unique identifier of the game session.</param>
     [HttpGet("map/{mapId:guid}")]
-    public async Task<ActionResult<List<MapTokenDto>>> GetByMap(Guid mapId) =>
-        Ok(await _tokenService.GetTokensByMapAsync(mapId));
+    public async Task<ActionResult<List<MapTokenDto>>> GetByMap(Guid mapId, [FromQuery] Guid sessionId) =>
+        Ok(await _tokenService.GetTokensByMapAsync(mapId, sessionId));
 
     /// <summary>
     /// Places a player character token onto the battlemap at the specified grid position.
