@@ -1,41 +1,28 @@
-import { useState } from 'react';
-import CreateGame from './components/CreateGame'; // Adjust the import path as needed
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import Main from './pages/Main';
 import './App.css';
-import NavBar from './components/NavBar';
-import { SectionCard } from './components/SectionCard';
-import { SimpleSectionCard } from './components/SimpleSectionCard';
+import Maps from './pages/Maps';
+import Profile from './pages/Profile';
+import Character from './pages/Character';
 
 function App() {
-  const [showCreateGame, setShowCreateGame] = useState(false);
-
   return (
-    <>
-     <NavBar />
+    <Router>
+      <Routes>
+        {/* Landing Page (Login & Join Game triggers) */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Main Game Board Page */}
+        <Route path="/game" element={<Main />} />
 
-      <SectionCard title="Welcome" badge="welcome">
-        <div>Hello</div>
-        <div>World</div>        
-      </SectionCard>
+        <Route path="/maps" element={<Maps />} />
 
-      <SimpleSectionCard >
-        <div>Hello</div>
-        <div>World</div>           
-      </SimpleSectionCard>
+        <Route path="/profile" element={<Profile />} />
 
-      <SimpleSectionCard >
-        <div>This lets the User create a game decide if they are dm or player then lets them upload a template for map</div>
-
-        <button type="button" onClick={() => setShowCreateGame(true)} className='hover:bg-blue-600 hover:text-black px-2 rounded'>
-          Create Game
-        </button>
-
-        <CreateGame 
-          isOpen={showCreateGame} 
-          onClose={() => setShowCreateGame(false)} 
-        />
-      </SimpleSectionCard>
-
-    </>
+        <Route path="/char" element={<Character />} />
+      </Routes>
+    </Router>
   );
 }
 

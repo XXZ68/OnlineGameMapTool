@@ -18,6 +18,7 @@ function Modal({ isOpen, onClose, children }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      
       {/* 1. Dark Backdrop Overlay */}
       <input 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity cursor-pointer"
@@ -29,7 +30,8 @@ function Modal({ isOpen, onClose, children }) {
       />
 
       {/* 2. Modal Content Container */}
-      <div className="relative z-10 w-full max-w-md rounded-lg bg-white dark:bg-black p-6 shadow-xl transition-all m-4">
+      <div className="bg-secondary-bg relative z-10 w-full max-w-md rounded-lg p-6 shadow-xl transition-all m-4">
+        
         {/* Close Button (X) */}
         <button
           type="button"
@@ -43,7 +45,7 @@ function Modal({ isOpen, onClose, children }) {
         </button>
 
         {/* 3. Dynamic Content Slot */}
-        <div className="mt-2">
+        <div className="mt-6">
           {children}
         </div>
       </div>
