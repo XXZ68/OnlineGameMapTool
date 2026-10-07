@@ -48,7 +48,7 @@ public class MapController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<MapDetailDto>> Create([FromForm] CreateMapDto dto, IFormFile image)
     {   
-        var allowedExtensions = new[] { ".jpg", ".png", ".webp"};
+        var allowedExtensions = new[] { ".jpg", ".png", ".webp", ".jpeg", };
 
         if (image == null || image.Length == 0)
             {
@@ -63,7 +63,7 @@ public class MapController : ControllerBase
 
         if (!allowedExtensions.Contains(fileExtension))
             {
-                return BadRequest("Bitte lade einen gültigen Dateityp (.jpg, .png, webp) für die Battlemap hoch.");
+                return BadRequest("Bitte lade einen gültigen Dateityp (.jpg, .jpeg, .png, .webp, ) für die Battlemap hoch.");
             }
         
         if (dto.InitialCellSize <= 0)
@@ -87,7 +87,6 @@ public class MapController : ControllerBase
         {
             return BadRequest("Beschädigtes Bild.");
         }
-
 
 
         var created = await _mapService.CreateMapAsync(dto, image);
