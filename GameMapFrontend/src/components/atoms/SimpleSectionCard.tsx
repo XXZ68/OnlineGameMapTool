@@ -1,0 +1,19 @@
+import type { ReactNode } from 'react'
+
+type SimpleSectionCardProps = {
+  children: ReactNode
+  className?: string
+}
+
+export function SimpleSectionCard({
+  children,
+  className = '',
+}: SimpleSectionCardProps) {
+  return (
+    <section className="p-6 my-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div className={`leading-relaxed ${className}`}>
+        {children}
+      </div>
+    </section>
+  )
+}
