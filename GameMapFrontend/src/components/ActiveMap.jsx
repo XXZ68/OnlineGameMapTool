@@ -17,7 +17,6 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
   // References
   const hubConnectionRef = useRef(null);
   const mapContainerRef = useRef(null);
-  const currentScaleRef = useRef(1);
 
   // Derived loading state
   const isLoading = !mapData || mapData.id !== mapId;
@@ -65,7 +64,6 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
       setTokens((prev) =>
         prev.map((t) => (t.id === tokenId ? { ...t, gridX: newGridX, gridY: newGridY } : t))
       );
-      // Keep inspector coordinates updated if the selected token was moved
       setSelectedToken((prev) =>
         prev && prev.id === tokenId ? { ...prev, gridX: newGridX, gridY: newGridY } : prev
       );
@@ -127,7 +125,7 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
     };
   }, [sessionId, currentUser.playerId, currentUser.playerName]);
 
-  // --- 4. TOKEN DRAG & DROP WITH ZOOM CORRECTION ---
+  // --- 4. TOKEN DRAG & DROP WITH GEOMETRIC PROJECTION ---
   const canMoveToken = (token) => {
     if (currentUser?.isDungeonMaster) return true;
     if (token.isLocked) return false;
@@ -148,18 +146,28 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
 
   const handleDrop = async (e) => {
     e.preventDefault();
-    if (!grid || !mapContainerRef.current) return;
+    if (!grid || !mapContainerRef.current || !mapData) return;
 
-    // 1. Calculate drop coordinates factoring in scale and grid offsets
-    const containerRect = mapContainerRef.current.getBoundingClientRect();
-    const scale = currentScaleRef.current || 1;
-    const dropX = (e.clientX - containerRect.left) / scale;
-    const dropY = (e.clientY - containerRect.top) / scale;
+    // 1. Get real-time post-transform bounding rectangle of the canvas
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
 
-    const targetGridX = Math.floor((dropX - (grid.offsetX || 0)) / grid.cellSizeInPixels);
-    const targetGridY = Math.floor((dropY - (grid.offsetY || 0)) / grid.cellSizeInPixels);
+    // 2. Exact unscaled canvas coordinates via viewport projection
+    const canvasX = ((e.clientX - rect.left) / rect.width) * mapData.widthInPixels;
+    const canvasY = ((e.clientY - rect.top) / rect.height) * mapData.heightInPixels;
 
-    // CASE A: Spawning a Monster from TokenBox
+    const cellSize = grid.cellSizeInPixels || 50;
+
+    // 3. Offset by half cell so the center of the token lands where the cursor released
+    const tokenRadius = cellSize / 2;
+    const dropCenterX = canvasX - tokenRadius;
+    const dropCenterY = canvasY - tokenRadius;
+
+    // 4. Snap to nearest grid index (allows negative/out-of-bounds numbers for staging outside map)
+    const targetGridX = Math.round((dropCenterX - (grid.offsetX || 0)) / cellSize);
+    const targetGridY = Math.round((dropCenterY - (grid.offsetY || 0)) / cellSize);
+
+    // --- CASE A: Spawning a Monster from TokenBox ---
     const monsterSpawnData = e.dataTransfer.getData('application/vtt-spawn-monster');
     if (monsterSpawnData) {
       const monster = JSON.parse(monsterSpawnData);
@@ -178,14 +186,13 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
             customName: monster.name,
           }),
         });
-        // The token is added to the board when SignalR sends the 'TokenSpawned' event
       } catch (err) {
         console.error('Failed to spawn monster:', err);
       }
       return;
     }
 
-    // CASE B: Placing a Character from TokenBox
+    // --- CASE B: Placing a Character from TokenBox ---
     const characterPlaceData = e.dataTransfer.getData('application/vtt-place-character');
     if (characterPlaceData && sessionId) {
       const char = JSON.parse(characterPlaceData);
@@ -209,7 +216,7 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
       return;
     }
 
-    // CASE C: Moving an Existing Board Token
+    // --- CASE C: Moving an Existing Board Token ---
     const tokenId = e.dataTransfer.getData('text/plain');
     if (tokenId) {
       setTokens((prev) =>
@@ -250,11 +257,11 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
         minScale={0.2}
         maxScale={4}
         centerOnInit={true}
-        wheel={{ step: 0.1 }}
-        panning={{ excluded: ['vtt-token'] }}
-        onTransformed={(ref) => {
-          currentScaleRef.current = ref.state.scale;
+        wheel={{
+          step: 0.001,
+          smoothStep: 0.002,
         }}
+        panning={{ excluded: ['vtt-token'] }}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
@@ -299,10 +306,11 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                   position: 'relative',
                   width: mapData.widthInPixels,
                   height: mapData.heightInPixels,
-                  backgroundImage: `url(http://localhost:5089${mapData.imageUrl})`,
+                  backgroundImage: `url(${BACKEND_URL}${mapData.imageUrl})`,
                   backgroundSize: 'cover',
                   userSelect: 'none',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.8)',
+                  overflow: 'visible',
                 }}
               >
                 {/* SVG GRID OVERLAY */}
