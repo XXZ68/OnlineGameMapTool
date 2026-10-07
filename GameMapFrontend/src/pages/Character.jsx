@@ -1,5 +1,5 @@
 import LayoutDM from "../layouts/LayoutDM";
-import { SimpleSectionCard } from "../components/SimpleSectionCard";
+import { SimpleSectionCard } from "../components/atoms/SimpleSectionCard";
 
 export default function Character() {
   return (

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { SimpleSectionCard } from '../components/SimpleSectionCard';
+import { SimpleSectionCard } from '../components/atoms/SimpleSectionCard';
 import ThemeToggle from '../components/ThemeToggle';
-import LogIn from '../components/LogIn';
-import CreateGame from '../components/JoinGame';
-import Button from '../components/Button';
-import Cookies from "../components/Cookies";
+import LogIn from '../components/userActions/LogIn';
+import CreateGame from '../components/userActions/JoinGame';
+import Button from '../components/atoms/Button';
+import Cookies from "../components/EasterEggs/Cookies";
 
 export default function LandingPage() {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
