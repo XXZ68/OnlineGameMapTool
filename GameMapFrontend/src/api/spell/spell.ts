@@ -24,13 +24,6 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   ActiveSpellDto,
   CastSpellDto,
@@ -39,11 +32,10 @@ import type {
   SpellCastEventDto
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -62,31 +54,50 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Retrieves all active persistent spell templates on the specified battlemap.
- */
-export const getApiSpellMapMapIdActive = (
-    mapId: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ActiveSpellDto[]>> => {
+export type getApiSpellMapMapIdActiveResponse200TextPlain = {
+  data: ActiveSpellDto[]
+  status: 200
+}
 
+export type getApiSpellMapMapIdActiveResponse200ApplicationJson = {
+  data: ActiveSpellDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Spell/map/${mapId}/active`,options
-    );
-  }
+export type getApiSpellMapMapIdActiveResponse200TextJson = {
+  data: ActiveSpellDto[]
+  status: 200
+}
+
+export type getApiSpellMapMapIdActiveResponseSuccess = (getApiSpellMapMapIdActiveResponse200TextPlain | getApiSpellMapMapIdActiveResponse200ApplicationJson | getApiSpellMapMapIdActiveResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiSpellMapMapIdActiveResponse = (getApiSpellMapMapIdActiveResponseSuccess)
 
 export const getGetApiSpellMapMapIdActiveUrl = (mapId: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Spell/map/${mapId}/active`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Spell/map/${mapId}/active`
 }
+
+/**
+ * @summary Retrieves all active persistent spell templates on the specified battlemap.
+ */
+export const getApiSpellMapMapIdActive = async (mapId: string, options?: Parameters<typeof customInstance>[1]): Promise<getApiSpellMapMapIdActiveResponse> => {
+
+  return customInstance<getApiSpellMapMapIdActiveResponse>(getGetApiSpellMapMapIdActiveUrl(mapId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -98,16 +109,16 @@ export const getGetApiSpellMapMapIdActiveQueryKey = (mapId: string,) => {
     }
 
 
-export const getGetApiSpellMapMapIdActiveQueryOptions = <TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = AxiosError<unknown>>(mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiSpellMapMapIdActiveQueryOptions = <TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = unknown>(mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiSpellMapMapIdActiveQueryKey(mapId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>> = ({ signal }) => getApiSpellMapMapIdActive(mapId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>> = ({ signal }) => getApiSpellMapMapIdActive(mapId, { signal, ...requestOptions });
 
 
 
@@ -117,39 +128,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiSpellMapMapIdActiveQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>>
-export type GetApiSpellMapMapIdActiveQueryError = AxiosError<unknown>
+export type GetApiSpellMapMapIdActiveQueryError = unknown
 
 
-export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = AxiosError<unknown>>(
+export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = unknown>(
  mapId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>,
           TError,
           Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = AxiosError<unknown>>(
+export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = unknown>(
  mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>,
           TError,
           Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = AxiosError<unknown>>(
- mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = unknown>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves all active persistent spell templates on the specified battlemap.
  */
 
-export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = AxiosError<unknown>>(
- mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError = unknown>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiSpellMapMapIdActive>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -165,53 +176,90 @@ export function useGetApiSpellMapMapIdActive<TData = Awaited<ReturnType<typeof g
 
 
 
-/**
- * @summary Casts a spell at target grid coordinates, calculating area of effect and concentration.
- */
-export const postApiSpellMapMapIdCast = (
-    mapId: string,
-    castSpellDto?: CastSpellDto,
-    params?: PostApiSpellMapMapIdCastParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<SpellCastEventDto>> => {
+export type postApiSpellMapMapIdCastResponse200TextPlain = {
+  data: SpellCastEventDto
+  status: 200
+}
 
+export type postApiSpellMapMapIdCastResponse200ApplicationJson = {
+  data: SpellCastEventDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/Spell/map/${mapId}/cast`,
-      castSpellDto,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type postApiSpellMapMapIdCastResponse200TextJson = {
+  data: SpellCastEventDto
+  status: 200
+}
+
+export type postApiSpellMapMapIdCastResponseSuccess = (postApiSpellMapMapIdCastResponse200TextPlain | postApiSpellMapMapIdCastResponse200ApplicationJson | postApiSpellMapMapIdCastResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiSpellMapMapIdCastResponse = (postApiSpellMapMapIdCastResponseSuccess)
 
 export const getPostApiSpellMapMapIdCastUrl = (mapId: string,
     params?: PostApiSpellMapMapIdCastParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Spell/map/${mapId}/cast`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Spell/map/${mapId}/cast?${stringifiedParams}` : `/api/Spell/map/${mapId}/cast`
 }
+
+/**
+ * @summary Casts a spell at target grid coordinates, calculating area of effect and concentration.
+ */
+export const postApiSpellMapMapIdCast = async (mapId: string,
+    castSpellDto?: CastSpellDto,
+    params?: PostApiSpellMapMapIdCastParams, options?: Parameters<typeof customInstance>[1]): Promise<postApiSpellMapMapIdCastResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiSpellMapMapIdCastResponse>(getPostApiSpellMapMapIdCastUrl(mapId,params),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(castSpellDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiSpellMapMapIdCastMutationKey = () => ['postApiSpellMapMapIdCast'] as const;
 
-export const getPostApiSpellMapMapIdCastMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>, TError,PostApiSpellMapMapIdCastMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiSpellMapMapIdCastMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>, TError,PostApiSpellMapMapIdCastMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>, TError,PostApiSpellMapMapIdCastMutationVariables, TContext> => {
 
 const mutationKey = getPostApiSpellMapMapIdCastMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -219,7 +267,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>, PostApiSpellMapMapIdCastMutationVariables> = (props) => {
           const {mapId,data,params} = props ?? {};
 
-          return  postApiSpellMapMapIdCast(mapId,data,params,axiosOptions)
+          return  postApiSpellMapMapIdCast(mapId,data,params,requestOptions)
         }
 
 
@@ -231,14 +279,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiSpellMapMapIdCastMutationResult = NonNullable<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>>
     export type PostApiSpellMapMapIdCastMutationBody = CastSpellDto | undefined
-    export type PostApiSpellMapMapIdCastMutationError = AxiosError<unknown>
+    export type PostApiSpellMapMapIdCastMutationError = unknown
     export type PostApiSpellMapMapIdCastMutationVariables = {mapId: string;data?: CastSpellDto;params?: PostApiSpellMapMapIdCastParams}
 
     /**
  * @summary Casts a spell at target grid coordinates, calculating area of effect and concentration.
  */
-export const usePostApiSpellMapMapIdCast = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>, TError,PostApiSpellMapMapIdCastMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiSpellMapMapIdCast = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>, TError,PostApiSpellMapMapIdCastMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiSpellMapMapIdCast>>,
         TError,
@@ -247,51 +295,65 @@ export const usePostApiSpellMapMapIdCast = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPostApiSpellMapMapIdCastMutationOptions(options), queryClient);
     }
-    /**
- * @summary Dismisses an active persistent spell effect from the map.
- */
-export const deleteApiSpellActiveId = (
-    id: string,
-    params?: DeleteApiSpellActiveIdParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    export type deleteApiSpellActiveIdResponse200 = {
+  data: void
+  status: 200
+}
 
+export type deleteApiSpellActiveIdResponseSuccess = (deleteApiSpellActiveIdResponse200) & {
+  headers: Headers;
+};
+;
 
-    return axios.delete(
-      `/api/Spell/active/${id}`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type deleteApiSpellActiveIdResponse = (deleteApiSpellActiveIdResponseSuccess)
 
 export const getDeleteApiSpellActiveIdUrl = (id: string,
     params?: DeleteApiSpellActiveIdParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Spell/active/${id}`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Spell/active/${id}?${stringifiedParams}` : `/api/Spell/active/${id}`
 }
+
+/**
+ * @summary Dismisses an active persistent spell effect from the map.
+ */
+export const deleteApiSpellActiveId = async (id: string,
+    params?: DeleteApiSpellActiveIdParams, options?: Parameters<typeof customInstance>[1]): Promise<deleteApiSpellActiveIdResponse> => {
+
+  return customInstance<deleteApiSpellActiveIdResponse>(getDeleteApiSpellActiveIdUrl(id,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
 
 
 
 
 export const getDeleteApiSpellActiveIdMutationKey = () => ['deleteApiSpellActiveId'] as const;
 
-export const getDeleteApiSpellActiveIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiSpellActiveId>>, TError,DeleteApiSpellActiveIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteApiSpellActiveIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiSpellActiveId>>, TError,DeleteApiSpellActiveIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteApiSpellActiveId>>, TError,DeleteApiSpellActiveIdMutationVariables, TContext> => {
 
 const mutationKey = getDeleteApiSpellActiveIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -299,7 +361,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiSpellActiveId>>, DeleteApiSpellActiveIdMutationVariables> = (props) => {
           const {id,params} = props ?? {};
 
-          return  deleteApiSpellActiveId(id,params,axiosOptions)
+          return  deleteApiSpellActiveId(id,params,requestOptions)
         }
 
 
@@ -311,14 +373,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteApiSpellActiveIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiSpellActiveId>>>
 
-    export type DeleteApiSpellActiveIdMutationError = AxiosError<unknown>
+    export type DeleteApiSpellActiveIdMutationError = unknown
     export type DeleteApiSpellActiveIdMutationVariables = {id: string;params?: DeleteApiSpellActiveIdParams}
 
     /**
  * @summary Dismisses an active persistent spell effect from the map.
  */
-export const useDeleteApiSpellActiveId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiSpellActiveId>>, TError,DeleteApiSpellActiveIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteApiSpellActiveId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiSpellActiveId>>, TError,DeleteApiSpellActiveIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteApiSpellActiveId>>,
         TError,

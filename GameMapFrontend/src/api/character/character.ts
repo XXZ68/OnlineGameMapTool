@@ -24,24 +24,16 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   CharacterDto,
   CreateCharacterDto,
   UpdateCharacterSheetDto
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -60,31 +52,50 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Retrieves all characters created within a specific game session.
- */
-export const getApiCharacterSessionSessionId = (
-    sessionId: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CharacterDto[]>> => {
+export type getApiCharacterSessionSessionIdResponse200TextPlain = {
+  data: CharacterDto[]
+  status: 200
+}
 
+export type getApiCharacterSessionSessionIdResponse200ApplicationJson = {
+  data: CharacterDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Character/session/${sessionId}`,options
-    );
-  }
+export type getApiCharacterSessionSessionIdResponse200TextJson = {
+  data: CharacterDto[]
+  status: 200
+}
+
+export type getApiCharacterSessionSessionIdResponseSuccess = (getApiCharacterSessionSessionIdResponse200TextPlain | getApiCharacterSessionSessionIdResponse200ApplicationJson | getApiCharacterSessionSessionIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCharacterSessionSessionIdResponse = (getApiCharacterSessionSessionIdResponseSuccess)
 
 export const getGetApiCharacterSessionSessionIdUrl = (sessionId: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Character/session/${sessionId}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Character/session/${sessionId}`
 }
+
+/**
+ * @summary Retrieves all characters created within a specific game session.
+ */
+export const getApiCharacterSessionSessionId = async (sessionId: string, options?: Parameters<typeof customInstance>[1]): Promise<getApiCharacterSessionSessionIdResponse> => {
+
+  return customInstance<getApiCharacterSessionSessionIdResponse>(getGetApiCharacterSessionSessionIdUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -96,16 +107,16 @@ export const getGetApiCharacterSessionSessionIdQueryKey = (sessionId: string,) =
     }
 
 
-export const getGetApiCharacterSessionSessionIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = AxiosError<unknown>>(sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCharacterSessionSessionIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = unknown>(sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCharacterSessionSessionIdQueryKey(sessionId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>> = ({ signal }) => getApiCharacterSessionSessionId(sessionId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>> = ({ signal }) => getApiCharacterSessionSessionId(sessionId, { signal, ...requestOptions });
 
 
 
@@ -115,39 +126,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCharacterSessionSessionIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>>
-export type GetApiCharacterSessionSessionIdQueryError = AxiosError<unknown>
+export type GetApiCharacterSessionSessionIdQueryError = unknown
 
 
-export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = AxiosError<unknown>>(
+export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = unknown>(
  sessionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>,
           TError,
           Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = AxiosError<unknown>>(
+export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = unknown>(
  sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>,
           TError,
           Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = AxiosError<unknown>>(
- sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves all characters created within a specific game session.
  */
 
-export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = AxiosError<unknown>>(
- sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterSessionSessionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -163,31 +174,50 @@ export function useGetApiCharacterSessionSessionId<TData = Awaited<ReturnType<ty
 
 
 
-/**
- * @summary Retrieves a character sheet by its unique identifier.
- */
-export const getApiCharacterId = (
-    id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CharacterDto>> => {
+export type getApiCharacterIdResponse200TextPlain = {
+  data: CharacterDto
+  status: 200
+}
 
+export type getApiCharacterIdResponse200ApplicationJson = {
+  data: CharacterDto
+  status: 200
+}
 
-    return axios.get(
-      `/api/Character/${id}`,options
-    );
-  }
+export type getApiCharacterIdResponse200TextJson = {
+  data: CharacterDto
+  status: 200
+}
+
+export type getApiCharacterIdResponseSuccess = (getApiCharacterIdResponse200TextPlain | getApiCharacterIdResponse200ApplicationJson | getApiCharacterIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCharacterIdResponse = (getApiCharacterIdResponseSuccess)
 
 export const getGetApiCharacterIdUrl = (id: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Character/${id}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Character/${id}`
 }
+
+/**
+ * @summary Retrieves a character sheet by its unique identifier.
+ */
+export const getApiCharacterId = async (id: string, options?: Parameters<typeof customInstance>[1]): Promise<getApiCharacterIdResponse> => {
+
+  return customInstance<getApiCharacterIdResponse>(getGetApiCharacterIdUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -199,16 +229,16 @@ export const getGetApiCharacterIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetApiCharacterIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = AxiosError<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCharacterIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCharacterIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCharacterId>>> = ({ signal }) => getApiCharacterId(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCharacterId>>> = ({ signal }) => getApiCharacterId(id, { signal, ...requestOptions });
 
 
 
@@ -218,39 +248,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCharacterIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCharacterId>>>
-export type GetApiCharacterIdQueryError = AxiosError<unknown>
+export type GetApiCharacterIdQueryError = unknown
 
 
-export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = AxiosError<unknown>>(
+export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = unknown>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCharacterId>>,
           TError,
           Awaited<ReturnType<typeof getApiCharacterId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = AxiosError<unknown>>(
+export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = unknown>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCharacterId>>,
           TError,
           Awaited<ReturnType<typeof getApiCharacterId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = AxiosError<unknown>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves a character sheet by its unique identifier.
  */
 
-export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = AxiosError<unknown>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCharacterId>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCharacterId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -266,49 +296,81 @@ export function useGetApiCharacterId<TData = Awaited<ReturnType<typeof getApiCha
 
 
 
-/**
- * @summary Updates an existing character sheet (e.g., stats, Max HP, AC).
- */
-export const putApiCharacterId = (
-    id: string,
-    updateCharacterSheetDto?: UpdateCharacterSheetDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CharacterDto>> => {
+export type putApiCharacterIdResponse200TextPlain = {
+  data: CharacterDto
+  status: 200
+}
 
+export type putApiCharacterIdResponse200ApplicationJson = {
+  data: CharacterDto
+  status: 200
+}
 
-    return axios.put(
-      `/api/Character/${id}`,
-      updateCharacterSheetDto,options
-    );
-  }
+export type putApiCharacterIdResponse200TextJson = {
+  data: CharacterDto
+  status: 200
+}
+
+export type putApiCharacterIdResponseSuccess = (putApiCharacterIdResponse200TextPlain | putApiCharacterIdResponse200ApplicationJson | putApiCharacterIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type putApiCharacterIdResponse = (putApiCharacterIdResponseSuccess)
 
 export const getPutApiCharacterIdUrl = (id: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Character/${id}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Character/${id}`
 }
+
+/**
+ * @summary Updates an existing character sheet (e.g., stats, Max HP, AC).
+ */
+export const putApiCharacterId = async (id: string,
+    updateCharacterSheetDto?: UpdateCharacterSheetDto, options?: Parameters<typeof customInstance>[1]): Promise<putApiCharacterIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<putApiCharacterIdResponse>(getPutApiCharacterIdUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateCharacterSheetDto)
+  }
+);}
+
 
 
 
 
 export const getPutApiCharacterIdMutationKey = () => ['putApiCharacterId'] as const;
 
-export const getPutApiCharacterIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiCharacterId>>, TError,PutApiCharacterIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPutApiCharacterIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiCharacterId>>, TError,PutApiCharacterIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof putApiCharacterId>>, TError,PutApiCharacterIdMutationVariables, TContext> => {
 
 const mutationKey = getPutApiCharacterIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -316,7 +378,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiCharacterId>>, PutApiCharacterIdMutationVariables> = (props) => {
           const {id,data} = props ?? {};
 
-          return  putApiCharacterId(id,data,axiosOptions)
+          return  putApiCharacterId(id,data,requestOptions)
         }
 
 
@@ -328,14 +390,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PutApiCharacterIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiCharacterId>>>
     export type PutApiCharacterIdMutationBody = UpdateCharacterSheetDto | undefined
-    export type PutApiCharacterIdMutationError = AxiosError<unknown>
+    export type PutApiCharacterIdMutationError = unknown
     export type PutApiCharacterIdMutationVariables = {id: string;data?: UpdateCharacterSheetDto}
 
     /**
  * @summary Updates an existing character sheet (e.g., stats, Max HP, AC).
  */
-export const usePutApiCharacterId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiCharacterId>>, TError,PutApiCharacterIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePutApiCharacterId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiCharacterId>>, TError,PutApiCharacterIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putApiCharacterId>>,
         TError,
@@ -344,47 +406,56 @@ export const usePutApiCharacterId = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPutApiCharacterIdMutationOptions(options), queryClient);
     }
-    /**
- * @summary Permanently deletes a character from the campaign.
- */
-export const deleteApiCharacterId = (
-    id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    export type deleteApiCharacterIdResponse200 = {
+  data: void
+  status: 200
+}
 
+export type deleteApiCharacterIdResponseSuccess = (deleteApiCharacterIdResponse200) & {
+  headers: Headers;
+};
+;
 
-    return axios.delete(
-      `/api/Character/${id}`,options
-    );
-  }
+export type deleteApiCharacterIdResponse = (deleteApiCharacterIdResponseSuccess)
 
 export const getDeleteApiCharacterIdUrl = (id: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Character/${id}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Character/${id}`
 }
+
+/**
+ * @summary Permanently deletes a character from the campaign.
+ */
+export const deleteApiCharacterId = async (id: string, options?: Parameters<typeof customInstance>[1]): Promise<deleteApiCharacterIdResponse> => {
+
+  return customInstance<deleteApiCharacterIdResponse>(getDeleteApiCharacterIdUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
 
 
 
 
 export const getDeleteApiCharacterIdMutationKey = () => ['deleteApiCharacterId'] as const;
 
-export const getDeleteApiCharacterIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiCharacterId>>, TError,DeleteApiCharacterIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteApiCharacterIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiCharacterId>>, TError,DeleteApiCharacterIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteApiCharacterId>>, TError,DeleteApiCharacterIdMutationVariables, TContext> => {
 
 const mutationKey = getDeleteApiCharacterIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -392,7 +463,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiCharacterId>>, DeleteApiCharacterIdMutationVariables> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteApiCharacterId(id,axiosOptions)
+          return  deleteApiCharacterId(id,requestOptions)
         }
 
 
@@ -404,14 +475,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteApiCharacterIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiCharacterId>>>
 
-    export type DeleteApiCharacterIdMutationError = AxiosError<unknown>
+    export type DeleteApiCharacterIdMutationError = unknown
     export type DeleteApiCharacterIdMutationVariables = {id: string}
 
     /**
  * @summary Permanently deletes a character from the campaign.
  */
-export const useDeleteApiCharacterId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiCharacterId>>, TError,DeleteApiCharacterIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteApiCharacterId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiCharacterId>>, TError,DeleteApiCharacterIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteApiCharacterId>>,
         TError,
@@ -420,48 +491,80 @@ export const useDeleteApiCharacterId = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getDeleteApiCharacterIdMutationOptions(options), queryClient);
     }
-    /**
- * @summary Creates a new character for a game session.
- */
-export const postApiCharacter = (
-    createCharacterDto?: CreateCharacterDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CharacterDto>> => {
+    export type postApiCharacterResponse200TextPlain = {
+  data: CharacterDto
+  status: 200
+}
 
+export type postApiCharacterResponse200ApplicationJson = {
+  data: CharacterDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/Character`,
-      createCharacterDto,options
-    );
-  }
+export type postApiCharacterResponse200TextJson = {
+  data: CharacterDto
+  status: 200
+}
+
+export type postApiCharacterResponseSuccess = (postApiCharacterResponse200TextPlain | postApiCharacterResponse200ApplicationJson | postApiCharacterResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiCharacterResponse = (postApiCharacterResponseSuccess)
 
 export const getPostApiCharacterUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Character`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Character`
 }
+
+/**
+ * @summary Creates a new character for a game session.
+ */
+export const postApiCharacter = async (createCharacterDto?: CreateCharacterDto, options?: Parameters<typeof customInstance>[1]): Promise<postApiCharacterResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiCharacterResponse>(getPostApiCharacterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createCharacterDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiCharacterMutationKey = () => ['postApiCharacter'] as const;
 
-export const getPostApiCharacterMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiCharacter>>, TError,PostApiCharacterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiCharacterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiCharacter>>, TError,PostApiCharacterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiCharacter>>, TError,PostApiCharacterMutationVariables, TContext> => {
 
 const mutationKey = getPostApiCharacterMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -469,7 +572,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiCharacter>>, PostApiCharacterMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  postApiCharacter(data,axiosOptions)
+          return  postApiCharacter(data,requestOptions)
         }
 
 
@@ -481,14 +584,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiCharacterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiCharacter>>>
     export type PostApiCharacterMutationBody = CreateCharacterDto | undefined
-    export type PostApiCharacterMutationError = AxiosError<unknown>
+    export type PostApiCharacterMutationError = unknown
     export type PostApiCharacterMutationVariables = {data?: CreateCharacterDto}
 
     /**
  * @summary Creates a new character for a game session.
  */
-export const usePostApiCharacter = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiCharacter>>, TError,PostApiCharacterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiCharacter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiCharacter>>, TError,PostApiCharacterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiCharacter>>,
         TError,

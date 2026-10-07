@@ -24,24 +24,16 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   GridDto,
   PutApiGridMapMapIdParams,
   UpdateGridDto
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -60,31 +52,50 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Retrieves the current grid configuration for a given battlemap.
- */
-export const getApiGridMapMapId = (
-    mapId: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GridDto>> => {
+export type getApiGridMapMapIdResponse200TextPlain = {
+  data: GridDto
+  status: 200
+}
 
+export type getApiGridMapMapIdResponse200ApplicationJson = {
+  data: GridDto
+  status: 200
+}
 
-    return axios.get(
-      `/api/Grid/map/${mapId}`,options
-    );
-  }
+export type getApiGridMapMapIdResponse200TextJson = {
+  data: GridDto
+  status: 200
+}
+
+export type getApiGridMapMapIdResponseSuccess = (getApiGridMapMapIdResponse200TextPlain | getApiGridMapMapIdResponse200ApplicationJson | getApiGridMapMapIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiGridMapMapIdResponse = (getApiGridMapMapIdResponseSuccess)
 
 export const getGetApiGridMapMapIdUrl = (mapId: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Grid/map/${mapId}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Grid/map/${mapId}`
 }
+
+/**
+ * @summary Retrieves the current grid configuration for a given battlemap.
+ */
+export const getApiGridMapMapId = async (mapId: string, options?: Parameters<typeof customInstance>[1]): Promise<getApiGridMapMapIdResponse> => {
+
+  return customInstance<getApiGridMapMapIdResponse>(getGetApiGridMapMapIdUrl(mapId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -96,16 +107,16 @@ export const getGetApiGridMapMapIdQueryKey = (mapId: string,) => {
     }
 
 
-export const getGetApiGridMapMapIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = AxiosError<unknown>>(mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiGridMapMapIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = unknown>(mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiGridMapMapIdQueryKey(mapId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiGridMapMapId>>> = ({ signal }) => getApiGridMapMapId(mapId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiGridMapMapId>>> = ({ signal }) => getApiGridMapMapId(mapId, { signal, ...requestOptions });
 
 
 
@@ -115,39 +126,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiGridMapMapIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiGridMapMapId>>>
-export type GetApiGridMapMapIdQueryError = AxiosError<unknown>
+export type GetApiGridMapMapIdQueryError = unknown
 
 
-export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = unknown>(
  mapId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiGridMapMapId>>,
           TError,
           Awaited<ReturnType<typeof getApiGridMapMapId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = unknown>(
  mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiGridMapMapId>>,
           TError,
           Awaited<ReturnType<typeof getApiGridMapMapId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = AxiosError<unknown>>(
- mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = unknown>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves the current grid configuration for a given battlemap.
  */
 
-export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = AxiosError<unknown>>(
- mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGridMapMapId>>, TError = unknown>(
+ mapId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGridMapMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -163,53 +174,90 @@ export function useGetApiGridMapMapId<TData = Awaited<ReturnType<typeof getApiGr
 
 
 
-/**
- * @summary Updates the grid dimensions, cell size, and offsets for a battlemap.
- */
-export const putApiGridMapMapId = (
-    mapId: string,
-    updateGridDto?: UpdateGridDto,
-    params?: PutApiGridMapMapIdParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GridDto>> => {
+export type putApiGridMapMapIdResponse200TextPlain = {
+  data: GridDto
+  status: 200
+}
 
+export type putApiGridMapMapIdResponse200ApplicationJson = {
+  data: GridDto
+  status: 200
+}
 
-    return axios.put(
-      `/api/Grid/map/${mapId}`,
-      updateGridDto,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type putApiGridMapMapIdResponse200TextJson = {
+  data: GridDto
+  status: 200
+}
+
+export type putApiGridMapMapIdResponseSuccess = (putApiGridMapMapIdResponse200TextPlain | putApiGridMapMapIdResponse200ApplicationJson | putApiGridMapMapIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type putApiGridMapMapIdResponse = (putApiGridMapMapIdResponseSuccess)
 
 export const getPutApiGridMapMapIdUrl = (mapId: string,
     params?: PutApiGridMapMapIdParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Grid/map/${mapId}`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Grid/map/${mapId}?${stringifiedParams}` : `/api/Grid/map/${mapId}`
 }
+
+/**
+ * @summary Updates the grid dimensions, cell size, and offsets for a battlemap.
+ */
+export const putApiGridMapMapId = async (mapId: string,
+    updateGridDto?: UpdateGridDto,
+    params?: PutApiGridMapMapIdParams, options?: Parameters<typeof customInstance>[1]): Promise<putApiGridMapMapIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<putApiGridMapMapIdResponse>(getPutApiGridMapMapIdUrl(mapId,params),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateGridDto)
+  }
+);}
+
 
 
 
 
 export const getPutApiGridMapMapIdMutationKey = () => ['putApiGridMapMapId'] as const;
 
-export const getPutApiGridMapMapIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiGridMapMapId>>, TError,PutApiGridMapMapIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPutApiGridMapMapIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiGridMapMapId>>, TError,PutApiGridMapMapIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof putApiGridMapMapId>>, TError,PutApiGridMapMapIdMutationVariables, TContext> => {
 
 const mutationKey = getPutApiGridMapMapIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -217,7 +265,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiGridMapMapId>>, PutApiGridMapMapIdMutationVariables> = (props) => {
           const {mapId,data,params} = props ?? {};
 
-          return  putApiGridMapMapId(mapId,data,params,axiosOptions)
+          return  putApiGridMapMapId(mapId,data,params,requestOptions)
         }
 
 
@@ -229,14 +277,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PutApiGridMapMapIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiGridMapMapId>>>
     export type PutApiGridMapMapIdMutationBody = UpdateGridDto | undefined
-    export type PutApiGridMapMapIdMutationError = AxiosError<unknown>
+    export type PutApiGridMapMapIdMutationError = unknown
     export type PutApiGridMapMapIdMutationVariables = {mapId: string;data?: UpdateGridDto;params?: PutApiGridMapMapIdParams}
 
     /**
  * @summary Updates the grid dimensions, cell size, and offsets for a battlemap.
  */
-export const usePutApiGridMapMapId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiGridMapMapId>>, TError,PutApiGridMapMapIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePutApiGridMapMapId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiGridMapMapId>>, TError,PutApiGridMapMapIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putApiGridMapMapId>>,
         TError,

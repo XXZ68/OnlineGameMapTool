@@ -24,24 +24,16 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   MapDetailDto,
   MapSummaryDto,
   PostApiMapBody
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -60,31 +52,50 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Retrieves a list of all uploaded maps (summary metadata).
- */
-export const getApiMap = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapSummaryDto[]>> => {
+export type getApiMapResponse200TextPlain = {
+  data: MapSummaryDto[]
+  status: 200
+}
 
+export type getApiMapResponse200ApplicationJson = {
+  data: MapSummaryDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Map`,options
-    );
-  }
+export type getApiMapResponse200TextJson = {
+  data: MapSummaryDto[]
+  status: 200
+}
+
+export type getApiMapResponseSuccess = (getApiMapResponse200TextPlain | getApiMapResponse200ApplicationJson | getApiMapResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiMapResponse = (getApiMapResponseSuccess)
 
 export const getGetApiMapUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Map`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Map`
 }
+
+/**
+ * @summary Retrieves a list of all uploaded maps (summary metadata).
+ */
+export const getApiMap = async ( options?: Parameters<typeof customInstance>[1]): Promise<getApiMapResponse> => {
+
+  return customInstance<getApiMapResponse>(getGetApiMapUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -96,16 +107,16 @@ export const getGetApiMapQueryKey = () => {
     }
 
 
-export const getGetApiMapQueryOptions = <TData = Awaited<ReturnType<typeof getApiMap>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiMapQueryOptions = <TData = Awaited<ReturnType<typeof getApiMap>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiMapQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMap>>> = ({ signal }) => getApiMap({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMap>>> = ({ signal }) => getApiMap({ signal, ...requestOptions });
 
 
 
@@ -115,39 +126,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiMapQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMap>>>
-export type GetApiMapQueryError = AxiosError<unknown>
+export type GetApiMapQueryError = unknown
 
 
-export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = AxiosError<unknown>>(
+export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMap>>,
           TError,
           Awaited<ReturnType<typeof getApiMap>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = AxiosError<unknown>>(
+export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMap>>,
           TError,
           Awaited<ReturnType<typeof getApiMap>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves a list of all uploaded maps (summary metadata).
  */
 
-export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMap>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -163,13 +174,40 @@ export function useGetApiMap<TData = Awaited<ReturnType<typeof getApiMap>>, TErr
 
 
 
+export type postApiMapResponse200TextPlain = {
+  data: MapDetailDto
+  status: 200
+}
+
+export type postApiMapResponse200ApplicationJson = {
+  data: MapDetailDto
+  status: 200
+}
+
+export type postApiMapResponse200TextJson = {
+  data: MapDetailDto
+  status: 200
+}
+
+export type postApiMapResponseSuccess = (postApiMapResponse200TextPlain | postApiMapResponse200ApplicationJson | postApiMapResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiMapResponse = (postApiMapResponseSuccess)
+
+export const getPostApiMapUrl = () => {
+
+
+
+
+  return `/api/Map`
+}
+
 /**
  * @summary Uploads a new battlemap image file and generates its default grid configuration.
  */
-export const postApiMap = (
-    postApiMapBody?: PostApiMapBody, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapDetailDto>> => {
-
+export const postApiMap = async (postApiMapBody?: PostApiMapBody, options?: Parameters<typeof customInstance>[1]): Promise<postApiMapResponse> => {
     const formData = new FormData();
 if(postApiMapBody?.Title !== undefined) {
  formData.append(`Title`, postApiMapBody.Title);
@@ -181,40 +219,31 @@ if(postApiMapBody?.image !== undefined) {
  formData.append(`image`, postApiMapBody.image);
  }
 
-    return axios.post(
-      `/api/Map`,
-      formData,options
-    );
+  return customInstance<postApiMapResponse>(getPostApiMapUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
   }
+);}
 
-export const getPostApiMapUrl = () => {
-
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Map`,
-    baseURL: '',
-
-
-  });
-}
 
 
 
 
 export const getPostApiMapMutationKey = () => ['postApiMap'] as const;
 
-export const getPostApiMapMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMap>>, TError,PostApiMapMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiMapMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMap>>, TError,PostApiMapMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiMap>>, TError,PostApiMapMutationVariables, TContext> => {
 
 const mutationKey = getPostApiMapMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -222,7 +251,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiMap>>, PostApiMapMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  postApiMap(data,axiosOptions)
+          return  postApiMap(data,requestOptions)
         }
 
 
@@ -234,14 +263,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiMapMutationResult = NonNullable<Awaited<ReturnType<typeof postApiMap>>>
     export type PostApiMapMutationBody = PostApiMapBody | undefined
-    export type PostApiMapMutationError = AxiosError<unknown>
+    export type PostApiMapMutationError = unknown
     export type PostApiMapMutationVariables = {data?: PostApiMapBody}
 
     /**
  * @summary Uploads a new battlemap image file and generates its default grid configuration.
  */
-export const usePostApiMap = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMap>>, TError,PostApiMapMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiMap = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMap>>, TError,PostApiMapMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiMap>>,
         TError,
@@ -250,31 +279,50 @@ export const usePostApiMap = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPostApiMapMutationOptions(options), queryClient);
     }
-    /**
- * @summary Retrieves full map details including its grid, tokens, and active spells.
- */
-export const getApiMapId = (
-    id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapDetailDto>> => {
+    export type getApiMapIdResponse200TextPlain = {
+  data: MapDetailDto
+  status: 200
+}
 
+export type getApiMapIdResponse200ApplicationJson = {
+  data: MapDetailDto
+  status: 200
+}
 
-    return axios.get(
-      `/api/Map/${id}`,options
-    );
-  }
+export type getApiMapIdResponse200TextJson = {
+  data: MapDetailDto
+  status: 200
+}
+
+export type getApiMapIdResponseSuccess = (getApiMapIdResponse200TextPlain | getApiMapIdResponse200ApplicationJson | getApiMapIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiMapIdResponse = (getApiMapIdResponseSuccess)
 
 export const getGetApiMapIdUrl = (id: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Map/${id}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Map/${id}`
 }
+
+/**
+ * @summary Retrieves full map details including its grid, tokens, and active spells.
+ */
+export const getApiMapId = async (id: string, options?: Parameters<typeof customInstance>[1]): Promise<getApiMapIdResponse> => {
+
+  return customInstance<getApiMapIdResponse>(getGetApiMapIdUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -286,16 +334,16 @@ export const getGetApiMapIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetApiMapIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiMapId>>, TError = AxiosError<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiMapIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiMapId>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiMapIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMapId>>> = ({ signal }) => getApiMapId(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMapId>>> = ({ signal }) => getApiMapId(id, { signal, ...requestOptions });
 
 
 
@@ -305,39 +353,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiMapIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMapId>>>
-export type GetApiMapIdQueryError = AxiosError<unknown>
+export type GetApiMapIdQueryError = unknown
 
 
-export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = unknown>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMapId>>,
           TError,
           Awaited<ReturnType<typeof getApiMapId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = unknown>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMapId>>,
           TError,
           Awaited<ReturnType<typeof getApiMapId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = AxiosError<unknown>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves full map details including its grid, tokens, and active spells.
  */
 
-export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = AxiosError<unknown>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -353,47 +401,56 @@ export function useGetApiMapId<TData = Awaited<ReturnType<typeof getApiMapId>>, 
 
 
 
-/**
- * @summary Deletes a battlemap and cascades the removal of its grid, tokens, and spells.
- */
-export const deleteApiMapId = (
-    id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+export type deleteApiMapIdResponse200 = {
+  data: void
+  status: 200
+}
 
+export type deleteApiMapIdResponseSuccess = (deleteApiMapIdResponse200) & {
+  headers: Headers;
+};
+;
 
-    return axios.delete(
-      `/api/Map/${id}`,options
-    );
-  }
+export type deleteApiMapIdResponse = (deleteApiMapIdResponseSuccess)
 
 export const getDeleteApiMapIdUrl = (id: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Map/${id}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Map/${id}`
 }
+
+/**
+ * @summary Deletes a battlemap and cascades the removal of its grid, tokens, and spells.
+ */
+export const deleteApiMapId = async (id: string, options?: Parameters<typeof customInstance>[1]): Promise<deleteApiMapIdResponse> => {
+
+  return customInstance<deleteApiMapIdResponse>(getDeleteApiMapIdUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
 
 
 
 
 export const getDeleteApiMapIdMutationKey = () => ['deleteApiMapId'] as const;
 
-export const getDeleteApiMapIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapId>>, TError,DeleteApiMapIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteApiMapIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapId>>, TError,DeleteApiMapIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapId>>, TError,DeleteApiMapIdMutationVariables, TContext> => {
 
 const mutationKey = getDeleteApiMapIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -401,7 +458,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiMapId>>, DeleteApiMapIdMutationVariables> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteApiMapId(id,axiosOptions)
+          return  deleteApiMapId(id,requestOptions)
         }
 
 
@@ -413,14 +470,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteApiMapIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiMapId>>>
 
-    export type DeleteApiMapIdMutationError = AxiosError<unknown>
+    export type DeleteApiMapIdMutationError = unknown
     export type DeleteApiMapIdMutationVariables = {id: string}
 
     /**
  * @summary Deletes a battlemap and cascades the removal of its grid, tokens, and spells.
  */
-export const useDeleteApiMapId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapId>>, TError,DeleteApiMapIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteApiMapId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiMapId>>, TError,DeleteApiMapIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteApiMapId>>,
         TError,

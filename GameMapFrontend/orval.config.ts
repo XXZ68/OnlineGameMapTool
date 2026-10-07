@@ -5,12 +5,12 @@ export default defineConfig({
     input: {
       target: "http://localhost:5089/swagger/v1/swagger.json",
     },
+
     output: {
       mode: "tags-split",
-      target: "src/api/generated",
-      schemas: "src/api/model",
+      target: "src/api",
+      schemas: "src/model",
       client: "react-query",
-      httpClient: "axios",
 
       override: {
         mutator: {

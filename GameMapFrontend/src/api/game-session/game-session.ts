@@ -24,13 +24,6 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   CreateSessionDto,
   GameSessionDto,
@@ -38,11 +31,10 @@ import type {
   PatchApiGameSessionIdActiveMapParams
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -61,48 +53,80 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Creates a new game session with a generated 6-character room code.
- */
-export const postApiGameSession = (
-    createSessionDto?: CreateSessionDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GameSessionDto>> => {
+export type postApiGameSessionResponse200TextPlain = {
+  data: GameSessionDto
+  status: 200
+}
 
+export type postApiGameSessionResponse200ApplicationJson = {
+  data: GameSessionDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/GameSession`,
-      createSessionDto,options
-    );
-  }
+export type postApiGameSessionResponse200TextJson = {
+  data: GameSessionDto
+  status: 200
+}
+
+export type postApiGameSessionResponseSuccess = (postApiGameSessionResponse200TextPlain | postApiGameSessionResponse200ApplicationJson | postApiGameSessionResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiGameSessionResponse = (postApiGameSessionResponseSuccess)
 
 export const getPostApiGameSessionUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/GameSession`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/GameSession`
 }
+
+/**
+ * @summary Creates a new game session with a generated 6-character room code.
+ */
+export const postApiGameSession = async (createSessionDto?: CreateSessionDto, options?: Parameters<typeof customInstance>[1]): Promise<postApiGameSessionResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiGameSessionResponse>(getPostApiGameSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createSessionDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiGameSessionMutationKey = () => ['postApiGameSession'] as const;
 
-export const getPostApiGameSessionMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSession>>, TError,PostApiGameSessionMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiGameSessionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSession>>, TError,PostApiGameSessionMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiGameSession>>, TError,PostApiGameSessionMutationVariables, TContext> => {
 
 const mutationKey = getPostApiGameSessionMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -110,7 +134,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiGameSession>>, PostApiGameSessionMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  postApiGameSession(data,axiosOptions)
+          return  postApiGameSession(data,requestOptions)
         }
 
 
@@ -122,14 +146,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiGameSessionMutationResult = NonNullable<Awaited<ReturnType<typeof postApiGameSession>>>
     export type PostApiGameSessionMutationBody = CreateSessionDto | undefined
-    export type PostApiGameSessionMutationError = AxiosError<unknown>
+    export type PostApiGameSessionMutationError = unknown
     export type PostApiGameSessionMutationVariables = {data?: CreateSessionDto}
 
     /**
  * @summary Creates a new game session with a generated 6-character room code.
  */
-export const usePostApiGameSession = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSession>>, TError,PostApiGameSessionMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiGameSession = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSession>>, TError,PostApiGameSessionMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiGameSession>>,
         TError,
@@ -138,31 +162,50 @@ export const usePostApiGameSession = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPostApiGameSessionMutationOptions(options), queryClient);
     }
-    /**
- * @summary Retrieves a game session by its unique ID, including connected participants.
- */
-export const getApiGameSessionId = (
-    id: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GameSessionDto>> => {
+    export type getApiGameSessionIdResponse200TextPlain = {
+  data: GameSessionDto
+  status: 200
+}
 
+export type getApiGameSessionIdResponse200ApplicationJson = {
+  data: GameSessionDto
+  status: 200
+}
 
-    return axios.get(
-      `/api/GameSession/${id}`,options
-    );
-  }
+export type getApiGameSessionIdResponse200TextJson = {
+  data: GameSessionDto
+  status: 200
+}
+
+export type getApiGameSessionIdResponseSuccess = (getApiGameSessionIdResponse200TextPlain | getApiGameSessionIdResponse200ApplicationJson | getApiGameSessionIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiGameSessionIdResponse = (getApiGameSessionIdResponseSuccess)
 
 export const getGetApiGameSessionIdUrl = (id: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/GameSession/${id}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/GameSession/${id}`
 }
+
+/**
+ * @summary Retrieves a game session by its unique ID, including connected participants.
+ */
+export const getApiGameSessionId = async (id: string, options?: Parameters<typeof customInstance>[1]): Promise<getApiGameSessionIdResponse> => {
+
+  return customInstance<getApiGameSessionIdResponse>(getGetApiGameSessionIdUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -174,16 +217,16 @@ export const getGetApiGameSessionIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetApiGameSessionIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = AxiosError<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiGameSessionIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiGameSessionIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiGameSessionId>>> = ({ signal }) => getApiGameSessionId(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiGameSessionId>>> = ({ signal }) => getApiGameSessionId(id, { signal, ...requestOptions });
 
 
 
@@ -193,39 +236,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiGameSessionIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiGameSessionId>>>
-export type GetApiGameSessionIdQueryError = AxiosError<unknown>
+export type GetApiGameSessionIdQueryError = unknown
 
 
-export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = AxiosError<unknown>>(
+export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = unknown>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiGameSessionId>>,
           TError,
           Awaited<ReturnType<typeof getApiGameSessionId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = AxiosError<unknown>>(
+export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = unknown>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiGameSessionId>>,
           TError,
           Awaited<ReturnType<typeof getApiGameSessionId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = AxiosError<unknown>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves a game session by its unique ID, including connected participants.
  */
 
-export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = AxiosError<unknown>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiGameSessionId>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiGameSessionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -241,48 +284,80 @@ export function useGetApiGameSessionId<TData = Awaited<ReturnType<typeof getApiG
 
 
 
-/**
- * @summary Joins an existing game session using the 6-character room code.
- */
-export const postApiGameSessionJoin = (
-    joinSessionDto?: JoinSessionDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GameSessionDto>> => {
+export type postApiGameSessionJoinResponse200TextPlain = {
+  data: GameSessionDto
+  status: 200
+}
 
+export type postApiGameSessionJoinResponse200ApplicationJson = {
+  data: GameSessionDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/GameSession/join`,
-      joinSessionDto,options
-    );
-  }
+export type postApiGameSessionJoinResponse200TextJson = {
+  data: GameSessionDto
+  status: 200
+}
+
+export type postApiGameSessionJoinResponseSuccess = (postApiGameSessionJoinResponse200TextPlain | postApiGameSessionJoinResponse200ApplicationJson | postApiGameSessionJoinResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiGameSessionJoinResponse = (postApiGameSessionJoinResponseSuccess)
 
 export const getPostApiGameSessionJoinUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/GameSession/join`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/GameSession/join`
 }
+
+/**
+ * @summary Joins an existing game session using the 6-character room code.
+ */
+export const postApiGameSessionJoin = async (joinSessionDto?: JoinSessionDto, options?: Parameters<typeof customInstance>[1]): Promise<postApiGameSessionJoinResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiGameSessionJoinResponse>(getPostApiGameSessionJoinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(joinSessionDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiGameSessionJoinMutationKey = () => ['postApiGameSessionJoin'] as const;
 
-export const getPostApiGameSessionJoinMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionJoin>>, TError,PostApiGameSessionJoinMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiGameSessionJoinMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionJoin>>, TError,PostApiGameSessionJoinMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionJoin>>, TError,PostApiGameSessionJoinMutationVariables, TContext> => {
 
 const mutationKey = getPostApiGameSessionJoinMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -290,7 +365,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiGameSessionJoin>>, PostApiGameSessionJoinMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  postApiGameSessionJoin(data,axiosOptions)
+          return  postApiGameSessionJoin(data,requestOptions)
         }
 
 
@@ -302,14 +377,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiGameSessionJoinMutationResult = NonNullable<Awaited<ReturnType<typeof postApiGameSessionJoin>>>
     export type PostApiGameSessionJoinMutationBody = JoinSessionDto | undefined
-    export type PostApiGameSessionJoinMutationError = AxiosError<unknown>
+    export type PostApiGameSessionJoinMutationError = unknown
     export type PostApiGameSessionJoinMutationVariables = {data?: JoinSessionDto}
 
     /**
  * @summary Joins an existing game session using the 6-character room code.
  */
-export const usePostApiGameSessionJoin = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionJoin>>, TError,PostApiGameSessionJoinMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiGameSessionJoin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionJoin>>, TError,PostApiGameSessionJoinMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiGameSessionJoin>>,
         TError,
@@ -318,47 +393,55 @@ export const usePostApiGameSessionJoin = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPostApiGameSessionJoinMutationOptions(options), queryClient);
     }
-    export const postApiGameSessionSessionIdAddMapMapId = (
-    sessionId: string,
-    mapId: string, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    export type postApiGameSessionSessionIdAddMapMapIdResponse200 = {
+  data: void
+  status: 200
+}
 
+export type postApiGameSessionSessionIdAddMapMapIdResponseSuccess = (postApiGameSessionSessionIdAddMapMapIdResponse200) & {
+  headers: Headers;
+};
+;
 
-    return axios.post(
-      `/api/GameSession/${sessionId}/add-map/${mapId}`,
-      undefined,options
-    );
-  }
+export type postApiGameSessionSessionIdAddMapMapIdResponse = (postApiGameSessionSessionIdAddMapMapIdResponseSuccess)
 
 export const getPostApiGameSessionSessionIdAddMapMapIdUrl = (sessionId: string,
     mapId: string,) => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/GameSession/${sessionId}/add-map/${mapId}`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/GameSession/${sessionId}/add-map/${mapId}`
 }
+
+export const postApiGameSessionSessionIdAddMapMapId = async (sessionId: string,
+    mapId: string, options?: Parameters<typeof customInstance>[1]): Promise<postApiGameSessionSessionIdAddMapMapIdResponse> => {
+
+  return customInstance<postApiGameSessionSessionIdAddMapMapIdResponse>(getPostApiGameSessionSessionIdAddMapMapIdUrl(sessionId,mapId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
 
 
 
 
 export const getPostApiGameSessionSessionIdAddMapMapIdMutationKey = () => ['postApiGameSessionSessionIdAddMapMapId'] as const;
 
-export const getPostApiGameSessionSessionIdAddMapMapIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>, TError,PostApiGameSessionSessionIdAddMapMapIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiGameSessionSessionIdAddMapMapIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>, TError,PostApiGameSessionSessionIdAddMapMapIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>, TError,PostApiGameSessionSessionIdAddMapMapIdMutationVariables, TContext> => {
 
 const mutationKey = getPostApiGameSessionSessionIdAddMapMapIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -366,7 +449,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>, PostApiGameSessionSessionIdAddMapMapIdMutationVariables> = (props) => {
           const {sessionId,mapId} = props ?? {};
 
-          return  postApiGameSessionSessionIdAddMapMapId(sessionId,mapId,axiosOptions)
+          return  postApiGameSessionSessionIdAddMapMapId(sessionId,mapId,requestOptions)
         }
 
 
@@ -378,11 +461,11 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiGameSessionSessionIdAddMapMapIdMutationResult = NonNullable<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>>
 
-    export type PostApiGameSessionSessionIdAddMapMapIdMutationError = AxiosError<unknown>
+    export type PostApiGameSessionSessionIdAddMapMapIdMutationError = unknown
     export type PostApiGameSessionSessionIdAddMapMapIdMutationVariables = {sessionId: string;mapId: string}
 
-    export const usePostApiGameSessionSessionIdAddMapMapId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>, TError,PostApiGameSessionSessionIdAddMapMapIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+    export const usePostApiGameSessionSessionIdAddMapMapId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>, TError,PostApiGameSessionSessionIdAddMapMapIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiGameSessionSessionIdAddMapMapId>>,
         TError,
@@ -391,52 +474,65 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       > => {
       return useMutation(getPostApiGameSessionSessionIdAddMapMapIdMutationOptions(options), queryClient);
     }
-    /**
- * @summary Switches the currently displayed battlemap for all players in the session.
- */
-export const patchApiGameSessionIdActiveMap = (
-    id: string,
-    params?: PatchApiGameSessionIdActiveMapParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    export type patchApiGameSessionIdActiveMapResponse200 = {
+  data: void
+  status: 200
+}
 
+export type patchApiGameSessionIdActiveMapResponseSuccess = (patchApiGameSessionIdActiveMapResponse200) & {
+  headers: Headers;
+};
+;
 
-    return axios.patch(
-      `/api/GameSession/${id}/active-map`,
-      undefined,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type patchApiGameSessionIdActiveMapResponse = (patchApiGameSessionIdActiveMapResponseSuccess)
 
 export const getPatchApiGameSessionIdActiveMapUrl = (id: string,
     params?: PatchApiGameSessionIdActiveMapParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/GameSession/${id}/active-map`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/GameSession/${id}/active-map?${stringifiedParams}` : `/api/GameSession/${id}/active-map`
 }
+
+/**
+ * @summary Switches the currently displayed battlemap for all players in the session.
+ */
+export const patchApiGameSessionIdActiveMap = async (id: string,
+    params?: PatchApiGameSessionIdActiveMapParams, options?: Parameters<typeof customInstance>[1]): Promise<patchApiGameSessionIdActiveMapResponse> => {
+
+  return customInstance<patchApiGameSessionIdActiveMapResponse>(getPatchApiGameSessionIdActiveMapUrl(id,params),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
 
 
 
 
 export const getPatchApiGameSessionIdActiveMapMutationKey = () => ['patchApiGameSessionIdActiveMap'] as const;
 
-export const getPatchApiGameSessionIdActiveMapMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>, TError,PatchApiGameSessionIdActiveMapMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPatchApiGameSessionIdActiveMapMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>, TError,PatchApiGameSessionIdActiveMapMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>, TError,PatchApiGameSessionIdActiveMapMutationVariables, TContext> => {
 
 const mutationKey = getPatchApiGameSessionIdActiveMapMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -444,7 +540,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>, PatchApiGameSessionIdActiveMapMutationVariables> = (props) => {
           const {id,params} = props ?? {};
 
-          return  patchApiGameSessionIdActiveMap(id,params,axiosOptions)
+          return  patchApiGameSessionIdActiveMap(id,params,requestOptions)
         }
 
 
@@ -456,14 +552,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PatchApiGameSessionIdActiveMapMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>>
 
-    export type PatchApiGameSessionIdActiveMapMutationError = AxiosError<unknown>
+    export type PatchApiGameSessionIdActiveMapMutationError = unknown
     export type PatchApiGameSessionIdActiveMapMutationVariables = {id: string;params?: PatchApiGameSessionIdActiveMapParams}
 
     /**
  * @summary Switches the currently displayed battlemap for all players in the session.
  */
-export const usePatchApiGameSessionIdActiveMap = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>, TError,PatchApiGameSessionIdActiveMapMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePatchApiGameSessionIdActiveMap = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>, TError,PatchApiGameSessionIdActiveMapMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchApiGameSessionIdActiveMap>>,
         TError,

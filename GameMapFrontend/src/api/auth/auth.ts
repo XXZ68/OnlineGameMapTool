@@ -15,65 +15,89 @@ import type {
   UseMutationResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   AuthRequestDto,
   AuthResponseDto
 } from '../../model';
 
-
-type AwaitedInput<T> = PromiseLike<T> | T;
-
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+import { customInstance } from '.././mutator';
 
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
-export const postApiAuthRegister = (
-    authRequestDto?: AuthRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AuthResponseDto>> => {
 
+export type postApiAuthRegisterResponse200TextPlain = {
+  data: AuthResponseDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/Auth/register`,
-      authRequestDto,options
-    );
-  }
+export type postApiAuthRegisterResponse200ApplicationJson = {
+  data: AuthResponseDto
+  status: 200
+}
+
+export type postApiAuthRegisterResponse200TextJson = {
+  data: AuthResponseDto
+  status: 200
+}
+
+export type postApiAuthRegisterResponseSuccess = (postApiAuthRegisterResponse200TextPlain | postApiAuthRegisterResponse200ApplicationJson | postApiAuthRegisterResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiAuthRegisterResponse = (postApiAuthRegisterResponseSuccess)
 
 export const getPostApiAuthRegisterUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Auth/register`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Auth/register`
 }
+
+export const postApiAuthRegister = async (authRequestDto?: AuthRequestDto, options?: Parameters<typeof customInstance>[1]): Promise<postApiAuthRegisterResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiAuthRegisterResponse>(getPostApiAuthRegisterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authRequestDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiAuthRegisterMutationKey = () => ['postApiAuthRegister'] as const;
 
-export const getPostApiAuthRegisterMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,PostApiAuthRegisterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiAuthRegisterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,PostApiAuthRegisterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,PostApiAuthRegisterMutationVariables, TContext> => {
 
 const mutationKey = getPostApiAuthRegisterMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -81,7 +105,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiAuthRegister>>, PostApiAuthRegisterMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  postApiAuthRegister(data,axiosOptions)
+          return  postApiAuthRegister(data,requestOptions)
         }
 
 
@@ -93,11 +117,11 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiAuthRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiAuthRegister>>>
     export type PostApiAuthRegisterMutationBody = AuthRequestDto | undefined
-    export type PostApiAuthRegisterMutationError = AxiosError<unknown>
+    export type PostApiAuthRegisterMutationError = unknown
     export type PostApiAuthRegisterMutationVariables = {data?: AuthRequestDto}
 
-    export const usePostApiAuthRegister = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,PostApiAuthRegisterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+    export const usePostApiAuthRegister = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,PostApiAuthRegisterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiAuthRegister>>,
         TError,
@@ -106,45 +130,77 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       > => {
       return useMutation(getPostApiAuthRegisterMutationOptions(options), queryClient);
     }
-    export const postApiAuthLogin = (
-    authRequestDto?: AuthRequestDto, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AuthResponseDto>> => {
+    export type postApiAuthLoginResponse200TextPlain = {
+  data: AuthResponseDto
+  status: 200
+}
 
+export type postApiAuthLoginResponse200ApplicationJson = {
+  data: AuthResponseDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/Auth/login`,
-      authRequestDto,options
-    );
-  }
+export type postApiAuthLoginResponse200TextJson = {
+  data: AuthResponseDto
+  status: 200
+}
+
+export type postApiAuthLoginResponseSuccess = (postApiAuthLoginResponse200TextPlain | postApiAuthLoginResponse200ApplicationJson | postApiAuthLoginResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiAuthLoginResponse = (postApiAuthLoginResponseSuccess)
 
 export const getPostApiAuthLoginUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Auth/login`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Auth/login`
 }
+
+export const postApiAuthLogin = async (authRequestDto?: AuthRequestDto, options?: Parameters<typeof customInstance>[1]): Promise<postApiAuthLoginResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiAuthLoginResponse>(getPostApiAuthLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authRequestDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiAuthLoginMutationKey = () => ['postApiAuthLogin'] as const;
 
-export const getPostApiAuthLoginMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,PostApiAuthLoginMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiAuthLoginMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,PostApiAuthLoginMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,PostApiAuthLoginMutationVariables, TContext> => {
 
 const mutationKey = getPostApiAuthLoginMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -152,7 +208,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiAuthLogin>>, PostApiAuthLoginMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  postApiAuthLogin(data,axiosOptions)
+          return  postApiAuthLogin(data,requestOptions)
         }
 
 
@@ -164,11 +220,11 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiAuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof postApiAuthLogin>>>
     export type PostApiAuthLoginMutationBody = AuthRequestDto | undefined
-    export type PostApiAuthLoginMutationError = AxiosError<unknown>
+    export type PostApiAuthLoginMutationError = unknown
     export type PostApiAuthLoginMutationVariables = {data?: AuthRequestDto}
 
-    export const usePostApiAuthLogin = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,PostApiAuthLoginMutationVariables, TContext>, axios?: AxiosRequestConfig}
+    export const usePostApiAuthLogin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,PostApiAuthLoginMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiAuthLogin>>,
         TError,

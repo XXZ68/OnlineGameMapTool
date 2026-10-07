@@ -24,13 +24,6 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   DeleteApiTokenIdParams,
   GetApiTokenMapMapIdParams,
@@ -45,11 +38,10 @@ import type {
   UpdateTokenHpDto
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -68,35 +60,59 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Retrieves all active tokens currently placed on the specified battlemap.
- */
-export const getApiTokenMapMapId = (
-    mapId: string,
-    params?: GetApiTokenMapMapIdParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapTokenDto[]>> => {
+export type getApiTokenMapMapIdResponse200TextPlain = {
+  data: MapTokenDto[]
+  status: 200
+}
 
+export type getApiTokenMapMapIdResponse200ApplicationJson = {
+  data: MapTokenDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Token/map/${mapId}`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type getApiTokenMapMapIdResponse200TextJson = {
+  data: MapTokenDto[]
+  status: 200
+}
+
+export type getApiTokenMapMapIdResponseSuccess = (getApiTokenMapMapIdResponse200TextPlain | getApiTokenMapMapIdResponse200ApplicationJson | getApiTokenMapMapIdResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiTokenMapMapIdResponse = (getApiTokenMapMapIdResponseSuccess)
 
 export const getGetApiTokenMapMapIdUrl = (mapId: string,
     params?: GetApiTokenMapMapIdParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Token/map/${mapId}`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Token/map/${mapId}?${stringifiedParams}` : `/api/Token/map/${mapId}`
 }
+
+/**
+ * @summary Retrieves all active tokens currently placed on the specified battlemap.
+ */
+export const getApiTokenMapMapId = async (mapId: string,
+    params?: GetApiTokenMapMapIdParams, options?: Parameters<typeof customInstance>[1]): Promise<getApiTokenMapMapIdResponse> => {
+
+  return customInstance<getApiTokenMapMapIdResponse>(getGetApiTokenMapMapIdUrl(mapId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -109,17 +125,17 @@ export const getGetApiTokenMapMapIdQueryKey = (mapId: string,
     }
 
 
-export const getGetApiTokenMapMapIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = AxiosError<unknown>>(mapId: string,
-    params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiTokenMapMapIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = unknown>(mapId: string,
+    params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiTokenMapMapIdQueryKey(mapId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiTokenMapMapId>>> = ({ signal }) => getApiTokenMapMapId(mapId,params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiTokenMapMapId>>> = ({ signal }) => getApiTokenMapMapId(mapId,params, { signal, ...requestOptions });
 
 
 
@@ -129,10 +145,10 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiTokenMapMapIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiTokenMapMapId>>>
-export type GetApiTokenMapMapIdQueryError = AxiosError<unknown>
+export type GetApiTokenMapMapIdQueryError = unknown
 
 
-export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = unknown>(
  mapId: string,
     params: undefined |  GetApiTokenMapMapIdParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -140,10 +156,10 @@ export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiT
           TError,
           Awaited<ReturnType<typeof getApiTokenMapMapId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = unknown>(
  mapId: string,
     params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -151,21 +167,21 @@ export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiT
           TError,
           Awaited<ReturnType<typeof getApiTokenMapMapId>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = unknown>(
  mapId: string,
-    params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+    params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves all active tokens currently placed on the specified battlemap.
  */
 
-export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = AxiosError<unknown>>(
+export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError = unknown>(
  mapId: string,
-    params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>>, axios?: AxiosRequestConfig}
+    params?: GetApiTokenMapMapIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTokenMapMapId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -181,53 +197,90 @@ export function useGetApiTokenMapMapId<TData = Awaited<ReturnType<typeof getApiT
 
 
 
-/**
- * @summary Places a player character token onto the battlemap at the specified grid position.
- */
-export const postApiTokenMapMapIdPlaceCharacter = (
-    mapId: string,
-    placeCharacterTokenDto?: PlaceCharacterTokenDto,
-    params?: PostApiTokenMapMapIdPlaceCharacterParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapTokenDto>> => {
+export type postApiTokenMapMapIdPlaceCharacterResponse200TextPlain = {
+  data: MapTokenDto
+  status: 200
+}
 
+export type postApiTokenMapMapIdPlaceCharacterResponse200ApplicationJson = {
+  data: MapTokenDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/Token/map/${mapId}/place-character`,
-      placeCharacterTokenDto,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type postApiTokenMapMapIdPlaceCharacterResponse200TextJson = {
+  data: MapTokenDto
+  status: 200
+}
+
+export type postApiTokenMapMapIdPlaceCharacterResponseSuccess = (postApiTokenMapMapIdPlaceCharacterResponse200TextPlain | postApiTokenMapMapIdPlaceCharacterResponse200ApplicationJson | postApiTokenMapMapIdPlaceCharacterResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiTokenMapMapIdPlaceCharacterResponse = (postApiTokenMapMapIdPlaceCharacterResponseSuccess)
 
 export const getPostApiTokenMapMapIdPlaceCharacterUrl = (mapId: string,
     params?: PostApiTokenMapMapIdPlaceCharacterParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Token/map/${mapId}/place-character`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Token/map/${mapId}/place-character?${stringifiedParams}` : `/api/Token/map/${mapId}/place-character`
 }
+
+/**
+ * @summary Places a player character token onto the battlemap at the specified grid position.
+ */
+export const postApiTokenMapMapIdPlaceCharacter = async (mapId: string,
+    placeCharacterTokenDto?: PlaceCharacterTokenDto,
+    params?: PostApiTokenMapMapIdPlaceCharacterParams, options?: Parameters<typeof customInstance>[1]): Promise<postApiTokenMapMapIdPlaceCharacterResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiTokenMapMapIdPlaceCharacterResponse>(getPostApiTokenMapMapIdPlaceCharacterUrl(mapId,params),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(placeCharacterTokenDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiTokenMapMapIdPlaceCharacterMutationKey = () => ['postApiTokenMapMapIdPlaceCharacter'] as const;
 
-export const getPostApiTokenMapMapIdPlaceCharacterMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>, TError,PostApiTokenMapMapIdPlaceCharacterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiTokenMapMapIdPlaceCharacterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>, TError,PostApiTokenMapMapIdPlaceCharacterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>, TError,PostApiTokenMapMapIdPlaceCharacterMutationVariables, TContext> => {
 
 const mutationKey = getPostApiTokenMapMapIdPlaceCharacterMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -235,7 +288,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>, PostApiTokenMapMapIdPlaceCharacterMutationVariables> = (props) => {
           const {mapId,data,params} = props ?? {};
 
-          return  postApiTokenMapMapIdPlaceCharacter(mapId,data,params,axiosOptions)
+          return  postApiTokenMapMapIdPlaceCharacter(mapId,data,params,requestOptions)
         }
 
 
@@ -247,14 +300,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiTokenMapMapIdPlaceCharacterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>>
     export type PostApiTokenMapMapIdPlaceCharacterMutationBody = PlaceCharacterTokenDto | undefined
-    export type PostApiTokenMapMapIdPlaceCharacterMutationError = AxiosError<unknown>
+    export type PostApiTokenMapMapIdPlaceCharacterMutationError = unknown
     export type PostApiTokenMapMapIdPlaceCharacterMutationVariables = {mapId: string;data?: PlaceCharacterTokenDto;params?: PostApiTokenMapMapIdPlaceCharacterParams}
 
     /**
  * @summary Places a player character token onto the battlemap at the specified grid position.
  */
-export const usePostApiTokenMapMapIdPlaceCharacter = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>, TError,PostApiTokenMapMapIdPlaceCharacterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiTokenMapMapIdPlaceCharacter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>, TError,PostApiTokenMapMapIdPlaceCharacterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiTokenMapMapIdPlaceCharacter>>,
         TError,
@@ -263,53 +316,90 @@ export const usePostApiTokenMapMapIdPlaceCharacter = <TError = AxiosError<unknow
       > => {
       return useMutation(getPostApiTokenMapMapIdPlaceCharacterMutationOptions(options), queryClient);
     }
-    /**
- * @summary Spawns a monster token onto the battlemap from the D&D SRD compendium.
- */
-export const postApiTokenMapMapIdSpawnMonster = (
-    mapId: string,
-    spawnMonsterTokenDto?: SpawnMonsterTokenDto,
-    params?: PostApiTokenMapMapIdSpawnMonsterParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapTokenDto>> => {
+    export type postApiTokenMapMapIdSpawnMonsterResponse200TextPlain = {
+  data: MapTokenDto
+  status: 200
+}
 
+export type postApiTokenMapMapIdSpawnMonsterResponse200ApplicationJson = {
+  data: MapTokenDto
+  status: 200
+}
 
-    return axios.post(
-      `/api/Token/map/${mapId}/spawn-monster`,
-      spawnMonsterTokenDto,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type postApiTokenMapMapIdSpawnMonsterResponse200TextJson = {
+  data: MapTokenDto
+  status: 200
+}
+
+export type postApiTokenMapMapIdSpawnMonsterResponseSuccess = (postApiTokenMapMapIdSpawnMonsterResponse200TextPlain | postApiTokenMapMapIdSpawnMonsterResponse200ApplicationJson | postApiTokenMapMapIdSpawnMonsterResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postApiTokenMapMapIdSpawnMonsterResponse = (postApiTokenMapMapIdSpawnMonsterResponseSuccess)
 
 export const getPostApiTokenMapMapIdSpawnMonsterUrl = (mapId: string,
     params?: PostApiTokenMapMapIdSpawnMonsterParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Token/map/${mapId}/spawn-monster`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Token/map/${mapId}/spawn-monster?${stringifiedParams}` : `/api/Token/map/${mapId}/spawn-monster`
 }
+
+/**
+ * @summary Spawns a monster token onto the battlemap from the D&D SRD compendium.
+ */
+export const postApiTokenMapMapIdSpawnMonster = async (mapId: string,
+    spawnMonsterTokenDto?: SpawnMonsterTokenDto,
+    params?: PostApiTokenMapMapIdSpawnMonsterParams, options?: Parameters<typeof customInstance>[1]): Promise<postApiTokenMapMapIdSpawnMonsterResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<postApiTokenMapMapIdSpawnMonsterResponse>(getPostApiTokenMapMapIdSpawnMonsterUrl(mapId,params),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(spawnMonsterTokenDto)
+  }
+);}
+
 
 
 
 
 export const getPostApiTokenMapMapIdSpawnMonsterMutationKey = () => ['postApiTokenMapMapIdSpawnMonster'] as const;
 
-export const getPostApiTokenMapMapIdSpawnMonsterMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>, TError,PostApiTokenMapMapIdSpawnMonsterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPostApiTokenMapMapIdSpawnMonsterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>, TError,PostApiTokenMapMapIdSpawnMonsterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>, TError,PostApiTokenMapMapIdSpawnMonsterMutationVariables, TContext> => {
 
 const mutationKey = getPostApiTokenMapMapIdSpawnMonsterMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -317,7 +407,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>, PostApiTokenMapMapIdSpawnMonsterMutationVariables> = (props) => {
           const {mapId,data,params} = props ?? {};
 
-          return  postApiTokenMapMapIdSpawnMonster(mapId,data,params,axiosOptions)
+          return  postApiTokenMapMapIdSpawnMonster(mapId,data,params,requestOptions)
         }
 
 
@@ -329,14 +419,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PostApiTokenMapMapIdSpawnMonsterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>>
     export type PostApiTokenMapMapIdSpawnMonsterMutationBody = SpawnMonsterTokenDto | undefined
-    export type PostApiTokenMapMapIdSpawnMonsterMutationError = AxiosError<unknown>
+    export type PostApiTokenMapMapIdSpawnMonsterMutationError = unknown
     export type PostApiTokenMapMapIdSpawnMonsterMutationVariables = {mapId: string;data?: SpawnMonsterTokenDto;params?: PostApiTokenMapMapIdSpawnMonsterParams}
 
     /**
  * @summary Spawns a monster token onto the battlemap from the D&D SRD compendium.
  */
-export const usePostApiTokenMapMapIdSpawnMonster = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>, TError,PostApiTokenMapMapIdSpawnMonsterMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePostApiTokenMapMapIdSpawnMonster = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>, TError,PostApiTokenMapMapIdSpawnMonsterMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiTokenMapMapIdSpawnMonster>>,
         TError,
@@ -345,53 +435,90 @@ export const usePostApiTokenMapMapIdSpawnMonster = <TError = AxiosError<unknown>
       > => {
       return useMutation(getPostApiTokenMapMapIdSpawnMonsterMutationOptions(options), queryClient);
     }
-    /**
- * @summary Moves an existing token to a new grid position.
- */
-export const patchApiTokenIdMove = (
-    id: string,
-    moveTokenDto?: MoveTokenDto,
-    params?: PatchApiTokenIdMoveParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapTokenDto>> => {
+    export type patchApiTokenIdMoveResponse200TextPlain = {
+  data: MapTokenDto
+  status: 200
+}
 
+export type patchApiTokenIdMoveResponse200ApplicationJson = {
+  data: MapTokenDto
+  status: 200
+}
 
-    return axios.patch(
-      `/api/Token/${id}/move`,
-      moveTokenDto,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type patchApiTokenIdMoveResponse200TextJson = {
+  data: MapTokenDto
+  status: 200
+}
+
+export type patchApiTokenIdMoveResponseSuccess = (patchApiTokenIdMoveResponse200TextPlain | patchApiTokenIdMoveResponse200ApplicationJson | patchApiTokenIdMoveResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type patchApiTokenIdMoveResponse = (patchApiTokenIdMoveResponseSuccess)
 
 export const getPatchApiTokenIdMoveUrl = (id: string,
     params?: PatchApiTokenIdMoveParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Token/${id}/move`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Token/${id}/move?${stringifiedParams}` : `/api/Token/${id}/move`
 }
+
+/**
+ * @summary Moves an existing token to a new grid position.
+ */
+export const patchApiTokenIdMove = async (id: string,
+    moveTokenDto?: MoveTokenDto,
+    params?: PatchApiTokenIdMoveParams, options?: Parameters<typeof customInstance>[1]): Promise<patchApiTokenIdMoveResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<patchApiTokenIdMoveResponse>(getPatchApiTokenIdMoveUrl(id,params),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moveTokenDto)
+  }
+);}
+
 
 
 
 
 export const getPatchApiTokenIdMoveMutationKey = () => ['patchApiTokenIdMove'] as const;
 
-export const getPatchApiTokenIdMoveMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdMove>>, TError,PatchApiTokenIdMoveMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPatchApiTokenIdMoveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdMove>>, TError,PatchApiTokenIdMoveMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdMove>>, TError,PatchApiTokenIdMoveMutationVariables, TContext> => {
 
 const mutationKey = getPatchApiTokenIdMoveMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -399,7 +526,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiTokenIdMove>>, PatchApiTokenIdMoveMutationVariables> = (props) => {
           const {id,data,params} = props ?? {};
 
-          return  patchApiTokenIdMove(id,data,params,axiosOptions)
+          return  patchApiTokenIdMove(id,data,params,requestOptions)
         }
 
 
@@ -411,14 +538,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PatchApiTokenIdMoveMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiTokenIdMove>>>
     export type PatchApiTokenIdMoveMutationBody = MoveTokenDto | undefined
-    export type PatchApiTokenIdMoveMutationError = AxiosError<unknown>
+    export type PatchApiTokenIdMoveMutationError = unknown
     export type PatchApiTokenIdMoveMutationVariables = {id: string;data?: MoveTokenDto;params?: PatchApiTokenIdMoveParams}
 
     /**
  * @summary Moves an existing token to a new grid position.
  */
-export const usePatchApiTokenIdMove = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdMove>>, TError,PatchApiTokenIdMoveMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePatchApiTokenIdMove = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdMove>>, TError,PatchApiTokenIdMoveMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchApiTokenIdMove>>,
         TError,
@@ -427,53 +554,90 @@ export const usePatchApiTokenIdMove = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPatchApiTokenIdMoveMutationOptions(options), queryClient);
     }
-    /**
- * @summary Updates the current Hit Points (HP) of a token on the board.
- */
-export const patchApiTokenIdHp = (
-    id: string,
-    updateTokenHpDto?: UpdateTokenHpDto,
-    params?: PatchApiTokenIdHpParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapTokenDto>> => {
+    export type patchApiTokenIdHpResponse200TextPlain = {
+  data: MapTokenDto
+  status: 200
+}
 
+export type patchApiTokenIdHpResponse200ApplicationJson = {
+  data: MapTokenDto
+  status: 200
+}
 
-    return axios.patch(
-      `/api/Token/${id}/hp`,
-      updateTokenHpDto,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type patchApiTokenIdHpResponse200TextJson = {
+  data: MapTokenDto
+  status: 200
+}
+
+export type patchApiTokenIdHpResponseSuccess = (patchApiTokenIdHpResponse200TextPlain | patchApiTokenIdHpResponse200ApplicationJson | patchApiTokenIdHpResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type patchApiTokenIdHpResponse = (patchApiTokenIdHpResponseSuccess)
 
 export const getPatchApiTokenIdHpUrl = (id: string,
     params?: PatchApiTokenIdHpParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Token/${id}/hp`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Token/${id}/hp?${stringifiedParams}` : `/api/Token/${id}/hp`
 }
+
+/**
+ * @summary Updates the current Hit Points (HP) of a token on the board.
+ */
+export const patchApiTokenIdHp = async (id: string,
+    updateTokenHpDto?: UpdateTokenHpDto,
+    params?: PatchApiTokenIdHpParams, options?: Parameters<typeof customInstance>[1]): Promise<patchApiTokenIdHpResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customInstance<patchApiTokenIdHpResponse>(getPatchApiTokenIdHpUrl(id,params),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateTokenHpDto)
+  }
+);}
+
 
 
 
 
 export const getPatchApiTokenIdHpMutationKey = () => ['patchApiTokenIdHp'] as const;
 
-export const getPatchApiTokenIdHpMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdHp>>, TError,PatchApiTokenIdHpMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getPatchApiTokenIdHpMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdHp>>, TError,PatchApiTokenIdHpMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdHp>>, TError,PatchApiTokenIdHpMutationVariables, TContext> => {
 
 const mutationKey = getPatchApiTokenIdHpMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -481,7 +645,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiTokenIdHp>>, PatchApiTokenIdHpMutationVariables> = (props) => {
           const {id,data,params} = props ?? {};
 
-          return  patchApiTokenIdHp(id,data,params,axiosOptions)
+          return  patchApiTokenIdHp(id,data,params,requestOptions)
         }
 
 
@@ -493,14 +657,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type PatchApiTokenIdHpMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiTokenIdHp>>>
     export type PatchApiTokenIdHpMutationBody = UpdateTokenHpDto | undefined
-    export type PatchApiTokenIdHpMutationError = AxiosError<unknown>
+    export type PatchApiTokenIdHpMutationError = unknown
     export type PatchApiTokenIdHpMutationVariables = {id: string;data?: UpdateTokenHpDto;params?: PatchApiTokenIdHpParams}
 
     /**
  * @summary Updates the current Hit Points (HP) of a token on the board.
  */
-export const usePatchApiTokenIdHp = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdHp>>, TError,PatchApiTokenIdHpMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const usePatchApiTokenIdHp = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTokenIdHp>>, TError,PatchApiTokenIdHpMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchApiTokenIdHp>>,
         TError,
@@ -509,51 +673,65 @@ export const usePatchApiTokenIdHp = <TError = AxiosError<unknown>,
       > => {
       return useMutation(getPatchApiTokenIdHpMutationOptions(options), queryClient);
     }
-    /**
- * @summary Removes a token permanently from the battlemap.
- */
-export const deleteApiTokenId = (
-    id: string,
-    params?: DeleteApiTokenIdParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
+    export type deleteApiTokenIdResponse200 = {
+  data: void
+  status: 200
+}
 
+export type deleteApiTokenIdResponseSuccess = (deleteApiTokenIdResponse200) & {
+  headers: Headers;
+};
+;
 
-    return axios.delete(
-      `/api/Token/${id}`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+export type deleteApiTokenIdResponse = (deleteApiTokenIdResponseSuccess)
 
 export const getDeleteApiTokenIdUrl = (id: string,
     params?: DeleteApiTokenIdParams,) => {
+  const normalizedParams = new URLSearchParams();
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Token/${id}`,
-    baseURL: '',
-    params,
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Token/${id}?${stringifiedParams}` : `/api/Token/${id}`
 }
+
+/**
+ * @summary Removes a token permanently from the battlemap.
+ */
+export const deleteApiTokenId = async (id: string,
+    params?: DeleteApiTokenIdParams, options?: Parameters<typeof customInstance>[1]): Promise<deleteApiTokenIdResponse> => {
+
+  return customInstance<deleteApiTokenIdResponse>(getDeleteApiTokenIdUrl(id,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
 
 
 
 
 export const getDeleteApiTokenIdMutationKey = () => ['deleteApiTokenId'] as const;
 
-export const getDeleteApiTokenIdMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiTokenId>>, TError,DeleteApiTokenIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteApiTokenIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiTokenId>>, TError,DeleteApiTokenIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteApiTokenId>>, TError,DeleteApiTokenIdMutationVariables, TContext> => {
 
 const mutationKey = getDeleteApiTokenIdMutationKey();
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -561,7 +739,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiTokenId>>, DeleteApiTokenIdMutationVariables> = (props) => {
           const {id,params} = props ?? {};
 
-          return  deleteApiTokenId(id,params,axiosOptions)
+          return  deleteApiTokenId(id,params,requestOptions)
         }
 
 
@@ -573,14 +751,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteApiTokenIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiTokenId>>>
 
-    export type DeleteApiTokenIdMutationError = AxiosError<unknown>
+    export type DeleteApiTokenIdMutationError = unknown
     export type DeleteApiTokenIdMutationVariables = {id: string;params?: DeleteApiTokenIdParams}
 
     /**
  * @summary Removes a token permanently from the battlemap.
  */
-export const useDeleteApiTokenId = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiTokenId>>, TError,DeleteApiTokenIdMutationVariables, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteApiTokenId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiTokenId>>, TError,DeleteApiTokenIdMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteApiTokenId>>,
         TError,

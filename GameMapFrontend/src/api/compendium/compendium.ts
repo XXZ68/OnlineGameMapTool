@@ -20,13 +20,6 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   CompendiumClassDto,
   CompendiumConditionDto,
@@ -37,11 +30,10 @@ import type {
   GetApiCompendiumSpellsParams
 } from '../../model';
 
+import { customInstance } from '.././mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -60,31 +52,50 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-/**
- * @summary Retrieves all available D&D classes for character creation.
- */
-export const getApiCompendiumClasses = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CompendiumClassDto[]>> => {
+export type getApiCompendiumClassesResponse200TextPlain = {
+  data: CompendiumClassDto[]
+  status: 200
+}
 
+export type getApiCompendiumClassesResponse200ApplicationJson = {
+  data: CompendiumClassDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Compendium/classes`,options
-    );
-  }
+export type getApiCompendiumClassesResponse200TextJson = {
+  data: CompendiumClassDto[]
+  status: 200
+}
+
+export type getApiCompendiumClassesResponseSuccess = (getApiCompendiumClassesResponse200TextPlain | getApiCompendiumClassesResponse200ApplicationJson | getApiCompendiumClassesResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCompendiumClassesResponse = (getApiCompendiumClassesResponseSuccess)
 
 export const getGetApiCompendiumClassesUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Compendium/classes`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Compendium/classes`
 }
+
+/**
+ * @summary Retrieves all available D&D classes for character creation.
+ */
+export const getApiCompendiumClasses = async ( options?: Parameters<typeof customInstance>[1]): Promise<getApiCompendiumClassesResponse> => {
+
+  return customInstance<getApiCompendiumClassesResponse>(getGetApiCompendiumClassesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -96,16 +107,16 @@ export const getGetApiCompendiumClassesQueryKey = () => {
     }
 
 
-export const getGetApiCompendiumClassesQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCompendiumClassesQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCompendiumClassesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumClasses>>> = ({ signal }) => getApiCompendiumClasses({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumClasses>>> = ({ signal }) => getApiCompendiumClasses({ signal, ...requestOptions });
 
 
 
@@ -115,39 +126,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCompendiumClassesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCompendiumClasses>>>
-export type GetApiCompendiumClassesQueryError = AxiosError<unknown>
+export type GetApiCompendiumClassesQueryError = unknown
 
 
-export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumClasses>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumClasses>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumClasses>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumClasses>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves all available D&D classes for character creation.
  */
 
-export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumClasses>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -163,31 +174,50 @@ export function useGetApiCompendiumClasses<TData = Awaited<ReturnType<typeof get
 
 
 
-/**
- * @summary Retrieves all available D&D races for character creation.
- */
-export const getApiCompendiumRaces = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CompendiumRaceDto[]>> => {
+export type getApiCompendiumRacesResponse200TextPlain = {
+  data: CompendiumRaceDto[]
+  status: 200
+}
 
+export type getApiCompendiumRacesResponse200ApplicationJson = {
+  data: CompendiumRaceDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Compendium/races`,options
-    );
-  }
+export type getApiCompendiumRacesResponse200TextJson = {
+  data: CompendiumRaceDto[]
+  status: 200
+}
+
+export type getApiCompendiumRacesResponseSuccess = (getApiCompendiumRacesResponse200TextPlain | getApiCompendiumRacesResponse200ApplicationJson | getApiCompendiumRacesResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCompendiumRacesResponse = (getApiCompendiumRacesResponseSuccess)
 
 export const getGetApiCompendiumRacesUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Compendium/races`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Compendium/races`
 }
+
+/**
+ * @summary Retrieves all available D&D races for character creation.
+ */
+export const getApiCompendiumRaces = async ( options?: Parameters<typeof customInstance>[1]): Promise<getApiCompendiumRacesResponse> => {
+
+  return customInstance<getApiCompendiumRacesResponse>(getGetApiCompendiumRacesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -199,16 +229,16 @@ export const getGetApiCompendiumRacesQueryKey = () => {
     }
 
 
-export const getGetApiCompendiumRacesQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCompendiumRacesQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCompendiumRacesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumRaces>>> = ({ signal }) => getApiCompendiumRaces({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumRaces>>> = ({ signal }) => getApiCompendiumRaces({ signal, ...requestOptions });
 
 
 
@@ -218,39 +248,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCompendiumRacesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCompendiumRaces>>>
-export type GetApiCompendiumRacesQueryError = AxiosError<unknown>
+export type GetApiCompendiumRacesQueryError = unknown
 
 
-export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumRaces>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumRaces>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumRaces>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumRaces>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves all available D&D races for character creation.
  */
 
-export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumRaces>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -266,33 +296,57 @@ export function useGetApiCompendiumRaces<TData = Awaited<ReturnType<typeof getAp
 
 
 
+export type getApiCompendiumSpellsResponse200TextPlain = {
+  data: CompendiumSpellDto[]
+  status: 200
+}
+
+export type getApiCompendiumSpellsResponse200ApplicationJson = {
+  data: CompendiumSpellDto[]
+  status: 200
+}
+
+export type getApiCompendiumSpellsResponse200TextJson = {
+  data: CompendiumSpellDto[]
+  status: 200
+}
+
+export type getApiCompendiumSpellsResponseSuccess = (getApiCompendiumSpellsResponse200TextPlain | getApiCompendiumSpellsResponse200ApplicationJson | getApiCompendiumSpellsResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCompendiumSpellsResponse = (getApiCompendiumSpellsResponseSuccess)
+
+export const getGetApiCompendiumSpellsUrl = (params?: GetApiCompendiumSpellsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Compendium/spells?${stringifiedParams}` : `/api/Compendium/spells`
+}
+
 /**
  * @summary Searches spells by name filter and optional spell level.
  */
-export const getApiCompendiumSpells = (
-    params?: GetApiCompendiumSpellsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CompendiumSpellDto[]>> => {
+export const getApiCompendiumSpells = async (params?: GetApiCompendiumSpellsParams, options?: Parameters<typeof customInstance>[1]): Promise<getApiCompendiumSpellsResponse> => {
 
-
-    return axios.get(
-      `/api/Compendium/spells`,{
+  return customInstance<getApiCompendiumSpellsResponse>(getGetApiCompendiumSpellsUrl(params),
+  {
     ...options,
-        params: {...params, ...options?.params},}
-    );
+    method: 'GET'
+
+
   }
+);}
 
-export const getGetApiCompendiumSpellsUrl = (params?: GetApiCompendiumSpellsParams,) => {
-
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Compendium/spells`,
-    baseURL: '',
-    params,
-
-  });
-}
 
 
 
@@ -304,16 +358,16 @@ export const getGetApiCompendiumSpellsQueryKey = (params?: GetApiCompendiumSpell
     }
 
 
-export const getGetApiCompendiumSpellsQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = AxiosError<unknown>>(params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCompendiumSpellsQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = unknown>(params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCompendiumSpellsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumSpells>>> = ({ signal }) => getApiCompendiumSpells(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumSpells>>> = ({ signal }) => getApiCompendiumSpells(params, { signal, ...requestOptions });
 
 
 
@@ -323,39 +377,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCompendiumSpellsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCompendiumSpells>>>
-export type GetApiCompendiumSpellsQueryError = AxiosError<unknown>
+export type GetApiCompendiumSpellsQueryError = unknown
 
 
-export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = unknown>(
  params: undefined |  GetApiCompendiumSpellsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumSpells>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumSpells>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = unknown>(
  params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumSpells>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumSpells>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = AxiosError<unknown>>(
- params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = unknown>(
+ params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Searches spells by name filter and optional spell level.
  */
 
-export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = AxiosError<unknown>>(
- params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError = unknown>(
+ params?: GetApiCompendiumSpellsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumSpells>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -371,33 +425,57 @@ export function useGetApiCompendiumSpells<TData = Awaited<ReturnType<typeof getA
 
 
 
+export type getApiCompendiumMonstersResponse200TextPlain = {
+  data: CompendiumMonsterDto[]
+  status: 200
+}
+
+export type getApiCompendiumMonstersResponse200ApplicationJson = {
+  data: CompendiumMonsterDto[]
+  status: 200
+}
+
+export type getApiCompendiumMonstersResponse200TextJson = {
+  data: CompendiumMonsterDto[]
+  status: 200
+}
+
+export type getApiCompendiumMonstersResponseSuccess = (getApiCompendiumMonstersResponse200TextPlain | getApiCompendiumMonstersResponse200ApplicationJson | getApiCompendiumMonstersResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCompendiumMonstersResponse = (getApiCompendiumMonstersResponseSuccess)
+
+export const getGetApiCompendiumMonstersUrl = (params?: GetApiCompendiumMonstersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/Compendium/monsters?${stringifiedParams}` : `/api/Compendium/monsters`
+}
+
 /**
  * @summary Searches monsters by name filter.
  */
-export const getApiCompendiumMonsters = (
-    params?: GetApiCompendiumMonstersParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CompendiumMonsterDto[]>> => {
+export const getApiCompendiumMonsters = async (params?: GetApiCompendiumMonstersParams, options?: Parameters<typeof customInstance>[1]): Promise<getApiCompendiumMonstersResponse> => {
 
-
-    return axios.get(
-      `/api/Compendium/monsters`,{
+  return customInstance<getApiCompendiumMonstersResponse>(getGetApiCompendiumMonstersUrl(params),
+  {
     ...options,
-        params: {...params, ...options?.params},}
-    );
+    method: 'GET'
+
+
   }
+);}
 
-export const getGetApiCompendiumMonstersUrl = (params?: GetApiCompendiumMonstersParams,) => {
-
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Compendium/monsters`,
-    baseURL: '',
-    params,
-
-  });
-}
 
 
 
@@ -409,16 +487,16 @@ export const getGetApiCompendiumMonstersQueryKey = (params?: GetApiCompendiumMon
     }
 
 
-export const getGetApiCompendiumMonstersQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = AxiosError<unknown>>(params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCompendiumMonstersQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = unknown>(params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCompendiumMonstersQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumMonsters>>> = ({ signal }) => getApiCompendiumMonsters(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumMonsters>>> = ({ signal }) => getApiCompendiumMonsters(params, { signal, ...requestOptions });
 
 
 
@@ -428,39 +506,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCompendiumMonstersQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCompendiumMonsters>>>
-export type GetApiCompendiumMonstersQueryError = AxiosError<unknown>
+export type GetApiCompendiumMonstersQueryError = unknown
 
 
-export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = unknown>(
  params: undefined |  GetApiCompendiumMonstersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumMonsters>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumMonsters>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = unknown>(
  params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumMonsters>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumMonsters>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = AxiosError<unknown>>(
- params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = unknown>(
+ params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Searches monsters by name filter.
  */
 
-export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = AxiosError<unknown>>(
- params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError = unknown>(
+ params?: GetApiCompendiumMonstersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumMonsters>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -476,31 +554,50 @@ export function useGetApiCompendiumMonsters<TData = Awaited<ReturnType<typeof ge
 
 
 
-/**
- * @summary Retrieves all standard D&D conditions.
- */
-export const getApiCompendiumConditions = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CompendiumConditionDto[]>> => {
+export type getApiCompendiumConditionsResponse200TextPlain = {
+  data: CompendiumConditionDto[]
+  status: 200
+}
 
+export type getApiCompendiumConditionsResponse200ApplicationJson = {
+  data: CompendiumConditionDto[]
+  status: 200
+}
 
-    return axios.get(
-      `/api/Compendium/conditions`,options
-    );
-  }
+export type getApiCompendiumConditionsResponse200TextJson = {
+  data: CompendiumConditionDto[]
+  status: 200
+}
+
+export type getApiCompendiumConditionsResponseSuccess = (getApiCompendiumConditionsResponse200TextPlain | getApiCompendiumConditionsResponse200ApplicationJson | getApiCompendiumConditionsResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type getApiCompendiumConditionsResponse = (getApiCompendiumConditionsResponseSuccess)
 
 export const getGetApiCompendiumConditionsUrl = () => {
 
-  return axios.create({
-    baseURL: '',
-    params: null,
-  }).getUri({
-    url: `/api/Compendium/conditions`,
-    baseURL: '',
 
 
-  });
+
+  return `/api/Compendium/conditions`
 }
+
+/**
+ * @summary Retrieves all standard D&D conditions.
+ */
+export const getApiCompendiumConditions = async ( options?: Parameters<typeof customInstance>[1]): Promise<getApiCompendiumConditionsResponse> => {
+
+  return customInstance<getApiCompendiumConditionsResponse>(getGetApiCompendiumConditionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
 
 
 
@@ -512,16 +609,16 @@ export const getGetApiCompendiumConditionsQueryKey = () => {
     }
 
 
-export const getGetApiCompendiumConditionsQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetApiCompendiumConditionsQueryOptions = <TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiCompendiumConditionsQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumConditions>>> = ({ signal }) => getApiCompendiumConditions({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCompendiumConditions>>> = ({ signal }) => getApiCompendiumConditions({ signal, ...requestOptions });
 
 
 
@@ -531,39 +628,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetApiCompendiumConditionsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCompendiumConditions>>>
-export type GetApiCompendiumConditionsQueryError = AxiosError<unknown>
+export type GetApiCompendiumConditionsQueryError = unknown
 
 
-export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumConditions>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumConditions>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = AxiosError<unknown>>(
+export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCompendiumConditions>>,
           TError,
           Awaited<ReturnType<typeof getApiCompendiumConditions>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Retrieves all standard D&D conditions.
  */
 
-export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetApiCompendiumConditions<TData = Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCompendiumConditions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

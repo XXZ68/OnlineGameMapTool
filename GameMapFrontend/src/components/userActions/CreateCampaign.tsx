@@ -5,7 +5,7 @@ import {
 import Modal from '../atoms/Modal'
 import TextInput from '../atoms/TextInput'
 import Button from '../atoms/Button'
-import { getApiMap } from '../../api'
+import { useGetApiMap } from '../../api'
 import { MapSummaryDto } from '../../model'
 
 type GameSession = {
@@ -29,64 +29,32 @@ export default function CreateCampaign({
   const [campaignName, setCampaignName] = useState('')
   const [addMap, setAddMap] = useState(false)
 
-  // SelectedMap contains the UI-specific isStarting property.
   const [selectedMaps, setSelectedMaps] = useState<
     SelectedMap[]
   >([])
 
-  // Maps coming from the API remain plain MapSummaryDto objects.
-  const [availableMaps, setAvailableMaps] = useState<
-    MapSummaryDto[]
-  >([])
-
-  const [isLoadingMaps, setIsLoadingMaps] = useState(false)
   const [showMapSearchPool, setShowMapSearchPool] =
     useState(false)
+
   const [searchTerm, setSearchTerm] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  // Lädt die verfügbaren Maps, wenn der Benutzer die Suche öffnet.
-  const fetchMaps = async () => {
-    setIsLoadingMaps(true)
-    setError(null)
+  const {
+    data: mapsData,
+    isLoading: isLoadingMaps,
+    error: mapsError,
+  } = useGetApiMap()
 
-    try {
-      const response = await getApiMap()
-
-      if (!response) {
-        throw new Error('Failed to load maps.')
-      }
-
-      console.log(response)
-
-      const data: MapSummaryDto[] = response.data
-
-      // Der Endpoint kann entweder eine einzelne Map
-      // oder ein Array zurückgeben.
-      const mapsArray = Array.isArray(data)
-        ? data
-        : [data]
-
-      setAvailableMaps(mapsArray)
-    } catch (err: unknown) {
-      console.error('Error retrieving maps:', err)
-
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('Failed to retrieve maps.')
-      }
-    } finally {
-      setIsLoadingMaps(false)
-    }
-  }
+  const availableMaps: MapSummaryDto[] =
+    Array.isArray(mapsData)
+      ? mapsData.filter(
+          (map): map is MapSummaryDto =>
+            map !== undefined,
+        )
+      : []
 
   const handleOpenSearchPool = () => {
     setShowMapSearchPool(true)
-
-    if (availableMaps.length === 0) {
-      fetchMaps()
-    }
   }
 
   const handleSelectMap = (map: MapSummaryDto) => {
@@ -296,9 +264,11 @@ export default function CreateCampaign({
                 <p className="text-xs text-gray-500">
                   Querying campaign assets...
                 </p>
-              ) : error ? (
+              ) : mapsError ? (
                 <p className="text-xs text-red-500">
-                  Error: {error}
+                  Error: {mapsError instanceof Error
+                    ? mapsError.message
+                    : 'Failed to retrieve maps.'}
                 </p>
               ) : filteredMaps.length === 0 ? (
                 <p className="text-xs text-gray-500">

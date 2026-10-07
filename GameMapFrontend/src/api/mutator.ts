@@ -1,12 +1,28 @@
-import axios, { type AxiosRequestConfig } from "axios";
+import axios from "axios";
 
-export const customInstance = <T>(
-  config: AxiosRequestConfig,
-  options?: AxiosRequestConfig,
+type RequestOptions = {
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  params?: Record<string, unknown>;
+  body?: unknown;
+  headers?: HeadersInit;
+  signal?: AbortSignal;
+};
+
+export const customInstance = async <T>(
+  url: string,
+  options?: RequestOptions,
 ): Promise<T> => {
-  return axios({
-    ...config,
-    ...options,
-    baseURL: "http://localhost:5089",
-  }).then(({ data }) => data);
+  const response = await axios<T>({
+    baseURL: import.meta.env.VITE_API_URL,
+    url,
+    method: options?.method,
+    params: options?.params,
+    data: options?.body,
+    headers: options?.headers
+      ? Object.fromEntries(new Headers(options.headers).entries())
+      : undefined,
+    signal: options?.signal,
+  });
+
+  return response.data;
 };

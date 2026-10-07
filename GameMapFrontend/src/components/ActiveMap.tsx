@@ -1,0 +1,924 @@
+import {
+  useState,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type DragEvent,
+} from 'react'
+import * as signalR from '@microsoft/signalr'
+import {
+  TransformWrapper,
+  TransformComponent,
+} from 'react-zoom-pan-pinch'
+import TokenBox from './TokenBox'
+
+const BACKEND_URL = 'http://localhost:5089'
+
+type MapData = {
+  id: string
+  widthInPixels: number
+  heightInPixels: number
+  imageUrl: string
+  grid: GridData | null
+  tokens: Token[]
+  activeSpells: SpellEvent[]
+}
+
+type GridData = {
+  cellSizeInPixels: number
+  offsetX?: number
+  offsetY?: number
+  lineColor?: string
+  lineOpacity?: number
+}
+
+type Token = {
+  id: string
+  name: string
+  gridX: number
+  gridY: number
+  sizeInCells?: number
+  isLocked?: boolean
+  isVisibleToPlayers?: boolean
+  characterId?: string | null
+  currentHp: number
+  maxHp: number
+  tokenImageUrl?: string | null
+}
+
+type SpellEvent = {
+  id?: string
+  eventId?: string
+  activeSpellId?: string
+  originGridX?: number
+  originGridY?: number
+  targetGridX?: number
+  targetGridY?: number
+  radiusInCells?: number
+  colorHex?: string
+}
+
+type CurrentUser = {
+  playerId: string
+  playerName: string
+  isDungeonMaster: boolean
+  selectedCharacterId: string | null
+}
+
+type ActiveMapProps = {
+  sessionId: string | null
+  mapId: string
+  currentUser: CurrentUser
+}
+
+export default function ActiveMap({
+  sessionId,
+  mapId,
+  currentUser,
+}: ActiveMapProps) {
+  // --- 1. STATE ---
+  const [mapData, setMapData] = useState<MapData | null>(null)
+  const [tokens, setTokens] = useState<Token[]>([])
+  const [grid, setGrid] = useState<GridData | null>(null)
+  const [activeSpells, setActiveSpells] = useState<SpellEvent[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [selectedToken, setSelectedToken] = useState<Token | null>(null)
+
+  // References
+  const hubConnectionRef =
+    useRef<signalR.HubConnection | null>(null)
+
+  const mapContainerRef =
+    useRef<HTMLDivElement | null>(null)
+
+  // Derived loading state
+  const isLoading =
+    !mapData || mapData.id !== mapId
+
+  // --- 2. FETCH INITIAL MAP DATA ---
+  useEffect(() => {
+    let isMounted = true
+
+    fetch(`${BACKEND_URL}/api/Map/${mapId}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(
+            `Failed to load map: ${res.statusText}`,
+          )
+        }
+
+        return res.json()
+      })
+      .then((data: MapData) => {
+        if (!isMounted) return
+
+        setMapData(data)
+        setGrid(data.grid)
+        setTokens(data.tokens || [])
+        setActiveSpells(data.activeSpells || [])
+        setError(null)
+      })
+      .catch((err: unknown) => {
+        if (!isMounted) return
+
+        console.error(err)
+
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('Failed to load map.')
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [mapId])
+
+  // --- 3. SIGNALR REAL-TIME SYNC ---
+  useEffect(() => {
+    if (!sessionId) return
+
+    const connection =
+      new signalR.HubConnectionBuilder()
+        .withUrl(`${BACKEND_URL}/hubs/map`, {
+          withCredentials: true,
+        })
+        .withAutomaticReconnect()
+        .build()
+
+    connection.on(
+      'TokenMoved',
+      (
+        tokenId: string,
+        newGridX: number,
+        newGridY: number,
+      ) => {
+        setTokens((prev) =>
+          prev.map((token) =>
+            token.id === tokenId
+              ? {
+                  ...token,
+                  gridX: newGridX,
+                  gridY: newGridY,
+                }
+              : token,
+          ),
+        )
+
+        setSelectedToken((prev) =>
+          prev && prev.id === tokenId
+            ? {
+                ...prev,
+                gridX: newGridX,
+                gridY: newGridY,
+              }
+            : prev,
+        )
+      },
+    )
+
+    connection.on(
+      'TokenSpawned',
+      (newToken: Token) => {
+        setTokens((prev) => [...prev, newToken])
+      },
+    )
+
+    connection.on(
+      'TokenHpChanged',
+      (
+        tokenId: string,
+        newHp: number,
+      ) => {
+        setTokens((prev) =>
+          prev.map((token) =>
+            token.id === tokenId
+              ? {
+                  ...token,
+                  currentHp: newHp,
+                }
+              : token,
+          ),
+        )
+
+        setSelectedToken((prev) =>
+          prev && prev.id === tokenId
+            ? {
+                ...prev,
+                currentHp: newHp,
+              }
+            : prev,
+        )
+      },
+    )
+
+    connection.on(
+      'TokenRemoved',
+      (tokenId: string) => {
+        setTokens((prev) =>
+          prev.filter((token) => token.id !== tokenId),
+        )
+
+        setSelectedToken((prev) =>
+          prev && prev.id === tokenId
+            ? null
+            : prev,
+        )
+      },
+    )
+
+    connection.on(
+      'GridUpdated',
+      (updatedGrid: GridData) => {
+        setGrid(updatedGrid)
+      },
+    )
+
+    connection.on(
+      'SpellCasted',
+      (spellEvent: SpellEvent) => {
+        setActiveSpells((prev) => [
+          ...prev,
+          spellEvent,
+        ])
+      },
+    )
+
+    connection.on(
+      'SpellDismissed',
+      (spellId: string) => {
+        setActiveSpells((prev) =>
+          prev.filter(
+            (spell) =>
+              spell.id !== spellId &&
+              spell.activeSpellId !== spellId,
+          ),
+        )
+      },
+    )
+
+    connection
+      .start()
+      .then(async () => {
+        await connection.invoke(
+          'JoinSession',
+          sessionId,
+          currentUser.playerId,
+          currentUser.playerName,
+        )
+      })
+      .catch((err: unknown) => {
+        console.error(
+          'SignalR error:',
+          err,
+        )
+      })
+
+    hubConnectionRef.current = connection
+
+    return () => {
+      if (hubConnectionRef.current) {
+        hubConnectionRef.current
+          .invoke(
+            'LeaveSession',
+            sessionId,
+            currentUser.playerId,
+          )
+          .catch(() => {})
+          .finally(() => {
+            hubConnectionRef.current?.stop()
+          })
+      }
+    }
+  }, [
+    sessionId,
+    currentUser.playerId,
+    currentUser.playerName,
+  ])
+
+  // --- 4. TOKEN DRAG & DROP WITH GEOMETRIC PROJECTION ---
+  const canMoveToken = (token: Token) => {
+    if (currentUser?.isDungeonMaster) {
+      return true
+    }
+
+    if (token.isLocked) {
+      return false
+    }
+
+    return (
+      token.characterId ===
+      currentUser?.selectedCharacterId
+    )
+  }
+
+  const handleDragStart = (
+    event: DragEvent<HTMLDivElement>,
+    token: Token,
+  ) => {
+    if (!canMoveToken(token)) {
+      event.preventDefault()
+      return
+    }
+
+    event.dataTransfer.setData(
+      'text/plain',
+      token.id,
+    )
+  }
+
+  const handleDragOver = (
+    event: DragEvent<HTMLDivElement>,
+  ) => {
+    event.preventDefault()
+  }
+
+  const handleDrop = async (
+    event: DragEvent<HTMLDivElement>,
+  ) => {
+    event.preventDefault()
+
+    if (
+      !grid ||
+      !mapContainerRef.current ||
+      !mapData
+    ) {
+      return
+    }
+
+    // 1. Get real-time post-transform bounding rectangle
+    const rect =
+      mapContainerRef.current.getBoundingClientRect()
+
+    if (
+      !rect ||
+      rect.width === 0 ||
+      rect.height === 0
+    ) {
+      return
+    }
+
+    // 2. Exact unscaled canvas coordinates
+    const canvasX =
+      ((event.clientX - rect.left) / rect.width) *
+      mapData.widthInPixels
+
+    const canvasY =
+      ((event.clientY - rect.top) / rect.height) *
+      mapData.heightInPixels
+
+    const cellSize =
+      grid.cellSizeInPixels || 50
+
+    // 3. Offset by half cell
+    const tokenRadius = cellSize / 2
+
+    const dropCenterX =
+      canvasX - tokenRadius
+
+    const dropCenterY =
+      canvasY - tokenRadius
+
+    // 4. Snap to nearest grid index
+    const targetGridX = Math.round(
+      (dropCenterX - (grid.offsetX || 0)) /
+        cellSize,
+    )
+
+    const targetGridY = Math.round(
+      (dropCenterY - (grid.offsetY || 0)) /
+        cellSize,
+    )
+
+    // --- CASE A: Spawning a Monster from TokenBox ---
+    const monsterSpawnData =
+      event.dataTransfer.getData(
+        'application/vtt-spawn-monster',
+      )
+
+    if (monsterSpawnData) {
+      const monster = JSON.parse(
+        monsterSpawnData,
+      ) as {
+        monsterIndex: number
+        name: string
+      }
+
+      try {
+        const url = new URL(
+          `${BACKEND_URL}/api/Token/map/${mapId}/spawn-monster`,
+        )
+
+        if (sessionId) {
+          url.searchParams.append(
+            'sessionId',
+            sessionId,
+          )
+        }
+
+        await fetch(url.toString(), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            monsterIndex: monster.monsterIndex,
+            gameSessionId: sessionId || null,
+            gridX: targetGridX,
+            gridY: targetGridY,
+            customName: monster.name,
+          }),
+        })
+      } catch (err: unknown) {
+        console.error(
+          'Failed to spawn monster:',
+          err,
+        )
+      }
+
+      return
+    }
+
+    // --- CASE B: Placing a Character from TokenBox ---
+    const characterPlaceData =
+      event.dataTransfer.getData(
+        'application/vtt-place-character',
+      )
+
+    if (
+      characterPlaceData &&
+      sessionId
+    ) {
+      const character = JSON.parse(
+        characterPlaceData,
+      ) as {
+        characterId: string
+      }
+
+      try {
+        const url = new URL(
+          `${BACKEND_URL}/api/Token/map/${mapId}/place-character`,
+        )
+
+        url.searchParams.append(
+          'sessionId',
+          sessionId,
+        )
+
+        await fetch(url.toString(), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            characterId:
+              character.characterId,
+            gameSessionId: sessionId,
+            gridX: targetGridX,
+            gridY: targetGridY,
+          }),
+        })
+      } catch (err: unknown) {
+        console.error(
+          'Failed to place character:',
+          err,
+        )
+      }
+
+      return
+    }
+
+    // --- CASE C: Moving an Existing Board Token ---
+    const tokenId =
+      event.dataTransfer.getData(
+        'text/plain',
+      )
+
+    if (tokenId) {
+      setTokens((prev) =>
+        prev.map((token) =>
+          token.id === tokenId
+            ? {
+                ...token,
+                gridX: targetGridX,
+                gridY: targetGridY,
+              }
+            : token,
+        ),
+      )
+
+      if (hubConnectionRef.current) {
+        try {
+          await hubConnectionRef.current.invoke(
+            'MoveToken',
+            sessionId,
+            tokenId,
+            targetGridX,
+            targetGridY,
+          )
+        } catch (err: unknown) {
+          console.error(
+            'Failed to sync token move:',
+            err,
+          )
+        }
+      }
+    }
+  }
+
+  // --- 5. RENDER ---
+  if (error) {
+    return (
+      <div
+        style={{
+          color: '#ff6b6b',
+          padding: '20px',
+        }}
+      >
+        Error: {error}
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          color: '#fff',
+          padding: '20px',
+        }}
+      >
+        Loading Battle Map...
+      </div>
+    )
+  }
+
+  const cellSize =
+    grid?.cellSizeInPixels || 50
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#121212',
+      }}
+    >
+      <TransformWrapper
+        initialScale={1}
+        minScale={0.2}
+        maxScale={4}
+        centerOnInit={true}
+        wheel={{
+          step: 0.001,
+        }}
+        panning={{
+          excluded: ['vtt-token'],
+        }}
+      >
+        {({
+          zoomIn,
+          zoomOut,
+          resetTransform,
+        }) => (
+          <>
+            {/* FLOATING ZOOM CONTROLS */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 24,
+                right: 24,
+                zIndex: 100,
+                display: 'flex',
+                gap: '8px',
+                background:
+                  'rgba(20, 20, 20, 0.85)',
+                padding: '6px 10px',
+                borderRadius: '8px',
+                border:
+                  '1px solid rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => zoomIn()}
+                style={buttonStyle}
+                title="Zoom In"
+              >
+                +
+              </button>
+
+              <button
+                type="button"
+                onClick={() => zoomOut()}
+                style={buttonStyle}
+                title="Zoom Out"
+              >
+                -
+              </button>
+
+              <button
+                type="button"
+                onClick={() => resetTransform()}
+                style={{
+                  ...buttonStyle,
+                  width: 'auto',
+                  padding: '0 10px',
+                  fontSize: '12px',
+                }}
+                title="Reset View"
+              >
+                Reset
+              </button>
+            </div>
+
+            {/* PAN & ZOOM CANVAS */}
+            <TransformComponent
+              wrapperStyle={{
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <div
+                ref={mapContainerRef}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                style={{
+                  position: 'relative',
+                  width: mapData.widthInPixels,
+                  height: mapData.heightInPixels,
+                  backgroundImage: `url(${BACKEND_URL}${mapData.imageUrl})`,
+                  backgroundSize: 'cover',
+                  userSelect: 'none',
+                  boxShadow:
+                    '0 4px 20px rgba(0,0,0,0.8)',
+                  overflow: 'visible',
+                }}
+              >
+                {/* SVG GRID OVERLAY */}
+                {grid && (
+                  <svg
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <defs>
+                      <pattern
+                        id="gridPattern"
+                        width={cellSize}
+                        height={cellSize}
+                        patternUnits="userSpaceOnUse"
+                        x={grid.offsetX || 0}
+                        y={grid.offsetY || 0}
+                      >
+                        <path
+                          d={`M ${cellSize} 0 L 0 0 0 ${cellSize}`}
+                          fill="none"
+                          stroke={
+                            grid.lineColor ||
+                            '#ffffff'
+                          }
+                          strokeWidth="1"
+                          strokeOpacity={
+                            grid.lineOpacity ?? 0.3
+                          }
+                        />
+                      </pattern>
+                    </defs>
+
+                    <rect
+                      width="100%"
+                      height="100%"
+                      fill="url(#gridPattern)"
+                    />
+
+                    {/* Spell Templates */}
+                    {activeSpells.map(
+                      (spell) => {
+                        const originX =
+                          (grid.offsetX || 0) +
+                          (spell.originGridX ??
+                            spell.targetGridX ??
+                            0) *
+                            cellSize +
+                          cellSize / 2
+
+                        const originY =
+                          (grid.offsetY || 0) +
+                          (spell.originGridY ??
+                            spell.targetGridY ??
+                            0) *
+                            cellSize +
+                          cellSize / 2
+
+                        const radiusPx =
+                          (spell.radiusInCells ||
+                            1) * cellSize
+
+                        return (
+                          <circle
+                            key={
+                              spell.id ||
+                              spell.eventId
+                            }
+                            cx={originX}
+                            cy={originY}
+                            r={radiusPx}
+                            fill={
+                              spell.colorHex ||
+                              '#ff0055'
+                            }
+                            fillOpacity={0.3}
+                            stroke={
+                              spell.colorHex ||
+                              '#ff0055'
+                            }
+                            strokeWidth={2}
+                          />
+                        )
+                      },
+                    )}
+                  </svg>
+                )}
+
+                {/* TOKENS LAYER */}
+                {tokens.map((token) => {
+                  if (
+                    !token.isVisibleToPlayers &&
+                    !currentUser?.isDungeonMaster
+                  ) {
+                    return null
+                  }
+
+                  const size =
+                    (token.sizeInCells || 1) *
+                    cellSize
+
+                  const left =
+                    (grid?.offsetX || 0) +
+                    token.gridX * cellSize
+
+                  const top =
+                    (grid?.offsetY || 0) +
+                    token.gridY * cellSize
+
+                  const draggable =
+                    canMoveToken(token)
+
+                  const isSelected =
+                    selectedToken?.id ===
+                    token.id
+
+                  return (
+                    <div
+                      key={token.id}
+                      className="vtt-token"
+                      draggable={draggable}
+                      onDragStart={(event) =>
+                        handleDragStart(
+                          event,
+                          token,
+                        )
+                      }
+                      onClick={() => {
+                        if (
+                          currentUser?.isDungeonMaster
+                        ) {
+                          setSelectedToken(token)
+                        }
+                      }}
+                      title={`${token.name} (${token.currentHp}/${token.maxHp} HP)`}
+                      style={{
+                        position: 'absolute',
+                        left: `${left}px`,
+                        top: `${top}px`,
+                        width: `${size}px`,
+                        height: `${size}px`,
+                        borderRadius: '50%',
+                        backgroundImage:
+                          token.tokenImageUrl
+                            ? `url(${token.tokenImageUrl})`
+                            : 'radial-gradient(circle, #e63946, #b7094c)',
+                        backgroundSize:
+                          'cover',
+                        backgroundPosition:
+                          'center',
+                        border: isSelected
+                          ? '3px solid #f59e0b'
+                          : draggable
+                            ? '2px solid #52b788'
+                            : '2px solid #333',
+                        boxShadow: isSelected
+                          ? '0 0 10px #f59e0b'
+                          : '0 2px 6px rgba(0,0,0,0.6)',
+                        cursor: draggable
+                          ? 'grab'
+                          : 'pointer',
+                        display: 'flex',
+                        flexDirection:
+                          'column',
+                        alignItems:
+                          'center',
+                        justifyContent:
+                          'flex-end',
+                      }}
+                    >
+                      {/* Health Bar */}
+                      <div
+                        style={{
+                          width: '80%',
+                          height: '4px',
+                          background: '#444',
+                          borderRadius: '2px',
+                          marginBottom: '4px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.max(
+                              0,
+                              Math.min(
+                                100,
+                                (token.currentHp /
+                                  token.maxHp) *
+                                  100,
+                              ),
+                            )}%`,
+                            height: '100%',
+                            background:
+                              token.currentHp /
+                                token.maxHp >
+                              0.3
+                                ? '#2dc653'
+                                : '#d90429',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </TransformComponent>
+          </>
+        )}
+      </TransformWrapper>
+
+      {/* GM TOKENBOX DRAWER */}
+      {currentUser?.isDungeonMaster && (
+        <TokenBox
+          sessionId={sessionId}
+          selectedToken={selectedToken}
+          onCloseInspector={() =>
+            setSelectedToken(null)
+          }
+          onHpChanged={(id: any, newHp: any) => {
+            setTokens((prev) =>
+              prev.map((token) =>
+                token.id === id
+                  ? {
+                      ...token,
+                      currentHp: newHp,
+                    }
+                  : token,
+              ),
+            )
+          }}
+          onTokenDeleted={(id: any) => {
+            setTokens((prev) =>
+              prev.filter(
+                (token) => token.id !== id,
+              ),
+            )
+
+            setSelectedToken(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+const buttonStyle: CSSProperties = {
+  width: '32px',
+  height: '32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: '#2b2b2b',
+  color: '#ffffff',
+  border: '1px solid #444',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '16px',
+  fontWeight: 'bold',
+}
