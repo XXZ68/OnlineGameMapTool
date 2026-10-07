@@ -1,6 +1,5 @@
 import { useState } from "react";
 import NavBar from "../components/layoutComponents/NavBar";
-import Sidebar from "../components/layoutComponents/SideBar";
 import CreateGame from "../components/userActions/CreateGame";
 import CreateCampaign from "../components/userActions/CreateCampaign";
 
@@ -17,13 +16,6 @@ export default function LayoutDM({ children }) {
       {/* 2. Main Area: Flex row splits Sidebar and Page Content */}
       <div className="flex flex-1 relative">
         
-        {/* Sidebar wrapper with a fixed width (adjust w-64 to match your Sidebar's width) */}
-        <aside className="w-64 shrink-0 hidden md:block">
-          <Sidebar 
-            onCreateGameClick={() => setIsCreateGameOpen(true)} 
-            onCreateCampaignClick={() => setIsCreateCampaignOpen(true)} 
-          />
-        </aside>
 
         {/* 3. Page Content: Constrained to remaining width and scrollable if needed */}
         <main className="flex-1 min-w-0 overflow-y-auto pb-24"> {/* pb-24 leaves room for ActionBar */}

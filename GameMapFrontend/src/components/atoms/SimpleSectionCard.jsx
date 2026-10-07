@@ -1,5 +1,5 @@
 
-export function SimpleSectionCard({ children, className = "" }) {
+export default function SimpleSectionCard({ children, className = "" }) {
   return (
     <section className="p-6 my-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
       

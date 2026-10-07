@@ -1,16 +1,17 @@
 
-import { SimpleSectionCard } from "../components/atoms/SimpleSectionCard";
-import LayoutDM from "../layouts/LayoutDM";
+import SimpleSectionCard from "../components/atoms/SimpleSectionCard";
+import NavBar from "../components/layoutComponents/NavBar";
 
 
 export default function Maps() {
 
 
     return (
-        <LayoutDM>
+        <>
+        <NavBar />
             <SimpleSectionCard >
                 <div>Hier könnten alle geuploadeten/gepieleten Karten aufgelistet werden</div>
-            </SimpleSectionCard>
-        </LayoutDM>        
+            </SimpleSectionCard>  
+        </>     
     )
 }

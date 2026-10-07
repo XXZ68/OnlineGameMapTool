@@ -55,10 +55,13 @@ export default function CreateGame({ isOpen, onClose, currentUser }) {
     setIsMapPickerOpen(false);
   };
 
+  // --- FIXED FUNCTION ---
   const handleLaunchLobby = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
+    
+    console.log(`Launching lobby "${sessionName}"`); // Fixed: changed 'lobbyName' to 'sessionName'
 
     try {
       // 1. Payload strictly adheres to CreateSessionDto
@@ -105,7 +108,7 @@ export default function CreateGame({ isOpen, onClose, currentUser }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }; // Move the closing brace here so the API call is scoped inside the function!
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>

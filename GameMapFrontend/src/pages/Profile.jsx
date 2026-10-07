@@ -1,16 +1,17 @@
 
-import { SimpleSectionCard } from "../components/atoms/SimpleSectionCard";
-import LayoutDM from "../layouts/LayoutDM";
+import SimpleSectionCard from "../components/atoms/SimpleSectionCard";
+import NavBar from "../components/layoutComponents/NavBar";
 
 
 
 export default function Profile() {
 
     return(
-        <LayoutDM>
+        <>
+            <NavBar />
             <SimpleSectionCard >
                 <div>Hier kann man seine Profil Daten ändern</div>
             </SimpleSectionCard>
-        </LayoutDM>
+        </>
     )
 }

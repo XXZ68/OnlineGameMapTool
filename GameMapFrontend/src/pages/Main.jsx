@@ -1,32 +1,57 @@
 import { useState } from "react";
 import ActionBar from "../components/gameComponents/ActionBar";
-import { SimpleSectionCard } from "../components/atoms/SimpleSectionCard";
+import SimpleSectionCard from "../components/atoms/SimpleSectionCard";
 import NotesForm from "../components/gameComponents/NotesForm";
 import Inventory from "../components/gameComponents/Inventory";
 import Actions from "../components/gameComponents/Actions";
-import LayoutDM from "../layouts/LayoutDM";
+import Button from "../components/atoms/Button";
+import CreateGame from "../components/userActions/CreateGame";
+import CreateCampaign from "../components/userActions/CreateCampaign";
+import NavBar from "../components/layoutComponents/NavBar";
 
 function Main() {
   const [activePanel, setActivePanel] = useState(null);
+  const [openCreateGame, setOpenCreateGame] = useState(false);
+  const [openCreateCampaign, setOpenCreateCampaign] = useState(false);
 
   const togglePanel = (panelName) => {
     setActivePanel((prev) => (prev === panelName ? null : panelName));
   };
 
   return (
-    <LayoutDM>
+    <>
+      <NavBar />
       {/* Content wrapper: Simplified classes to prevent escaping containment */}
       <div className="flex flex-col lg:flex-row gap-6 max-w-7xl w-full mx-auto p-6">
         
         {/* Left Side: Main Game Board (grows/shrinks smoothly) */}
         <div className="flex-1 min-w-0">
-          <SimpleSectionCard>
-            <h2 className="text-xl font-bold mb-4">Hier wird das Main GameBoard geladen</h2>
-            <p className="text-gray-300 leading-relaxed">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Libero soluta quaerat fugiat quo, perferendis ratione perspiciatis optio ad ut explicabo nobis quos voluptatem...
-            </p>
+          <SimpleSectionCard className="flex gap-4 justify-center items-center">
+            {/* FIX 1: Click handler opens Game, text corrected to "Create New Game" */}
+            <Button 
+              variant="primary" 
+              onClick={() => setOpenCreateGame(true)}
+            >
+              Create New Game
+            </Button>
+            
+            {/* FIX 2: Click handler opens Campaign, text is "Create New Campaign" */}
+            <Button 
+              variant="primary" 
+              onClick={() => setOpenCreateCampaign(true)}
+            >
+              Create New Campaign
+            </Button>
           </SimpleSectionCard>
         </div>
+
+        {/* Modal/Form Views */}
+        {openCreateGame && (
+          <CreateGame isOpen={openCreateGame} onClose={() => setOpenCreateGame(false)} />
+        )}
+        {openCreateCampaign && (
+          <CreateCampaign isOpen={openCreateCampaign} onClose={() => setOpenCreateCampaign(false)} />
+        )}
 
         {/* Right Side: Toggle Panel (occupies space only when open) */}
         {activePanel && (
@@ -55,7 +80,7 @@ function Main() {
 
       {/* State control on ActionBar */}
       <ActionBar activePanel={activePanel} onTogglePanel={togglePanel} />
-    </LayoutDM>
+    </>
   );
 }
 

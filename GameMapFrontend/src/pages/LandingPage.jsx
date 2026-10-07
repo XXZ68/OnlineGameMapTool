@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SimpleSectionCard } from '../components/atoms/SimpleSectionCard';
+import SimpleSectionCard from '../components/atoms/SimpleSectionCard';
 import ThemeToggle from '../components/ThemeToggle';
 import LogIn from '../components/userActions/LogIn';
 import CreateGame from '../components/userActions/JoinGame';
