@@ -1,5 +1,5 @@
 import { useState } from "react"
-import Button from "./atoms/buttons/Button"
+import Button from "./Button"
 import Modal from "./Modal"
 import { useNavigate } from 'react-router-dom';
 
@@ -11,7 +11,7 @@ export function AGBs( {isOpen, onClose} ) {
 
         console.log('Sucker accepted, let him into his account');
         onClose();
-        navigate('/game');
+        navigate('/api/game');
     }
     return (
         <Modal isOpen={isOpen} onClose={onClose}>

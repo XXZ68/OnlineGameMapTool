@@ -1,18 +1,16 @@
-import NavBar from "../components/NavBar";
-import Sidebar from "../components/SideBar";
+
 import { SimpleSectionCard } from "../components/SimpleSectionCard";
+import LayoutDM from "../layouts/LayoutDM";
 
 
 export default function Maps() {
 
 
     return (
-        <div>
-            <NavBar />
-            <Sidebar />
+        <LayoutDM>
             <SimpleSectionCard >
                 <div>Hier könnten alle geuploadeten/gepieleten Karten aufgelistet werden</div>
             </SimpleSectionCard>
-        </div>        
+        </LayoutDM>        
     )
 }

@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { SimpleSectionCard } from '../components/SimpleSectionCard';
 import ThemeToggle from '../components/ThemeToggle';
 import LogIn from '../components/LogIn';
-import CreateGame from '../components/CreateGame';
-import Button from '../components/atoms/buttons/Button';
+import CreateGame from '../components/JoinGame';
+import Button from '../components/Button';
 import Cookies from "../components/Cookies";
 
 export default function LandingPage() {

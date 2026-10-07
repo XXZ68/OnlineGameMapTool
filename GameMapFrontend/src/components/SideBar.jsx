@@ -1,14 +1,18 @@
+import Button from "./Button";
 
 
-export default function Sidebar() {
+export default function Sidebar( {onCreateGameClick, onCreateCampaignClick } ) {
 
   return (
     <nav className="fixed top-18 left-0 w-56 h-screen">
         <div>
             <ul className="p-5">
-                <li><a href="/maps">My Maps</a></li>
-                <li><a href="char">My Characters</a></li>
-                <li><a href="profile">Profile</a></li>
+                <li><Button variant="primary" onClick={onCreateCampaignClick}>Create New Campaign</Button></li>
+                <li><Button variant="primary" onClick={onCreateGameClick}>Create Game as DM</Button></li>
+                <li><a href="/api/game">Return to Game</a></li>
+                <li><a href="/api/Map">My Maps</a></li>
+                <li><a href="/api/Character">My Characters</a></li>
+                <li><a href="/api/profile">Profile</a></li>
             </ul>
         </div>
     </nav>

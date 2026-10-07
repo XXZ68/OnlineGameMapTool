@@ -1,7 +1,7 @@
 /**
  * A simple, accessible, and style-free text input component.
  */
-const TextInput = ({ label, value, className = '', onChange, placeholder = '', error = '', type = 'text', ...props }) => {
+const TextInput = ({ label, value, className = '', onChange, placeholder = '', error = '', type = 'text', disabled = false, ...props }) => {
   const combinedClassName = `bg-highlight-bg ${className}`.trim();
 
   return (
@@ -11,6 +11,7 @@ const TextInput = ({ label, value, className = '', onChange, placeholder = '', e
         <input
           type={type}
           value={value}
+          disabled={disabled}
           className={combinedClassName}
           onChange={onChange}
           placeholder={placeholder}

@@ -1,4 +1,4 @@
-import Button from "./atoms/buttons/Button"
+import Button from "./Button"
 import Modal from "./Modal"
 import TextInput from "./TextInput"
 
@@ -11,11 +11,9 @@ function SignUp( {onClose, isOpen} ) {
             <form className="flex flex-col justify-center"> 
                 <TextInput placeholder="Display Name" className="w-full px-3 py-3 m-2" />
 
-                <TextInput placeholder="Email" className="w-full px-3 py-3 m-2" />
+                <TextInput type="password" placeholder="Password" className="w-full px-3 py-3 m-2" />
 
-                <TextInput placeholder="Password" className="w-full px-3 py-3 m-2" />
-
-                <TextInput placeholder="Confirm Password" className="w-full px-3 py-3 m-2" />
+                <TextInput type="password" placeholder="Confirm Password" className="w-full px-3 py-3 m-2" />
             </form>
             <hr className="m-4" />
             <div className="flex flex-row gap-5 justify-center">

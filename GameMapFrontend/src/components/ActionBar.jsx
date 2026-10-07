@@ -1,4 +1,4 @@
-import Button from "./atoms/buttons/Button";
+import Button from "./Button";
 
 function ActionBar({ activePanel, onTogglePanel }) {
     return (
