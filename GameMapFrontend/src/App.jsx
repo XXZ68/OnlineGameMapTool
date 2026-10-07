@@ -21,6 +21,8 @@ function App() {
         <Route path="/api/profile" element={<Profile />} />
 
         <Route path="/api/Character" element={<Character />} />
+
+        <Route path="/418" element={<div>Im a teapot</div>} />
       </Routes>
     </Router>
   );

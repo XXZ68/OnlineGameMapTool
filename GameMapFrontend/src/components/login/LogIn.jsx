@@ -1,9 +1,9 @@
 import { useState } from "react";
-import Modal from "./Modal";
-import TextInput from "./TextInput";
+import Modal from "../atoms/Modal";
+import TextInput from "../atoms/TextInput";
 import SignUp from "./SignUp";
-import Button from "./Button";
-import { AGBs } from "./AGBs";
+import Button from "../atoms/Button";
+import { AGBs } from "../EasterEggs/AGBs";
 
 
 function LogIn( { isOpen, onClose } ) {
@@ -16,8 +16,8 @@ function LogIn( { isOpen, onClose } ) {
             <h2>Log in</h2>
             <form>
                 <div>
-                    <TextInput placeholder="Name" className="w-full px-3 py-3 m-2" />
-                    <TextInput type="password" placeholder="Password" className="w-full px-3 py-3 m-2" />
+                    <TextInput placeholder="Name" className="w-full px-3 py-3" />
+                    <TextInput type="password" placeholder="Password" className="w-full px-3 py-3 mt-4" />
                 </div>
                 <Button variant="primary" className="mt-2" onClick={() => setShowAGBs(true)}>
                     Submit

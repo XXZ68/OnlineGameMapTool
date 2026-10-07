@@ -1,6 +1,6 @@
 import { useState } from "react"
-import Button from "./Button"
-import Modal from "./Modal"
+import Button from "../atoms/Button"
+import Modal from "../atoms/Modal"
 import { useNavigate } from 'react-router-dom';
 
 export function AGBs( {isOpen, onClose} ) {

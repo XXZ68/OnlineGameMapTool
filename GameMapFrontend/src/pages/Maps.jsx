@@ -1,5 +1,5 @@
 
-import { SimpleSectionCard } from "../components/SimpleSectionCard";
+import { SimpleSectionCard } from "../components/atoms/SimpleSectionCard";
 import LayoutDM from "../layouts/LayoutDM";
 
 

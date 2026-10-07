@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TextInput from './TextInput';
-import Modal from './Modal';
-import Button from './Button';
+import TextInput from '../atoms/TextInput';
+import Modal from '../atoms/Modal';
+import Button from '../atoms/Button';
 
 export default function CreateGame({ isOpen, onClose, currentUser }) {
   const navigate = useNavigate();
