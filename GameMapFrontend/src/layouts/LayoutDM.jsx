@@ -2,7 +2,7 @@ import { useState } from "react";
 import NavBar from "../components/layoutComponents/NavBar";
 import Sidebar from "../components/layoutComponents/SideBar";
 import CreateGame from "../components/userActions/CreateGame";
-import CreateCampaign from "../components/CreateCampaign";
+import CreateCampaign from "../components/userActions/CreateCampaign";
 
 export default function LayoutDM({ children }) {
   const [isCreateGameOpen, setIsCreateGameOpen] = useState(false);

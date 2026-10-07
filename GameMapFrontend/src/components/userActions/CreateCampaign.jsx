@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Modal from "./atoms/Modal";
-import TextInput from "./atoms/TextInput";
-import Button from "./atoms/Button";
+import Modal from "../atoms/Modal";
+import TextInput from "../atoms/TextInput";
+import Button from "../atoms/Button";
 
 export default function CreateCampaign({ isOpen, onClose }) {
   const [campaignName, setCampaignName] = useState("");
