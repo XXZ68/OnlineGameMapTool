@@ -27,7 +27,7 @@ public class MapService : IMapService
 
     public async Task<List<MapSummaryDto>> GetAllMapsAsync()
     {
-        return await _context.Maps
+        var maps = await _context.Maps
             .AsNoTracking()
             .OrderByDescending(m => m.CreatedAt)
             .Select(m => new MapSummaryDto(
@@ -38,6 +38,34 @@ public class MapService : IMapService
                 m.HeightInPixels,
                 m.CreatedAt))
             .ToListAsync();
+
+        var missingMapIds = new List<Guid>();
+
+        foreach (var map in maps)
+        {
+            var filePath = Path.Combine(
+                _env.WebRootPath,
+                map.ImageUrl.TrimStart('/')
+            );
+
+            if (!File.Exists(filePath))
+            {
+                missingMapIds.Add(map.Id);
+            }
+        }
+
+        if (missingMapIds.Count > 0)
+        {
+            await _context.Maps
+                .Where(m => missingMapIds.Contains(m.Id))
+                .ExecuteDeleteAsync();
+
+            maps = maps
+                .Where(m => !missingMapIds.Contains(m.Id))
+                .ToList();
+        }
+
+        return maps;
     }
 
     public async Task<MapDetailDto?> GetMapByIdAsync(Guid id)
@@ -50,6 +78,17 @@ public class MapService : IMapService
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (map == null) return null;
+
+        var filePath = Path.Combine(
+            _env.WebRootPath,
+            map.ImageUrl.TrimStart('/')
+        );
+        if (!File.Exists(filePath))
+        {
+            _context.Maps.Remove(map);
+            await _context.SaveChangesAsync();
+            return null;
+        }
 
         return new MapDetailDto(
             map.Id,
@@ -150,6 +189,11 @@ public class MapService : IMapService
     {
         var map = await _context.Maps.FindAsync(id);
         if (map == null) return false;
+        var filePath = Path.Combine(
+            _env.WebRootPath,
+            map.ImageUrl.TrimStart('/')
+        );
+        if (!File.Exists(filePath)) return false;
 
         _context.Maps.Remove(map);
         await _context.SaveChangesAsync();
