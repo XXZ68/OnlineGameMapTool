@@ -2,7 +2,7 @@ import { useState } from "react";
 import Modal from "./Modal";
 import TextInput from "./TextInput";
 import SignUp from "./SignUp";
-import Button from "./atoms/buttons/Button";
+import Button from "./Button";
 import { AGBs } from "./AGBs";
 
 
@@ -17,7 +17,7 @@ function LogIn( { isOpen, onClose } ) {
             <form>
                 <div>
                     <TextInput placeholder="Name" className="w-full px-3 py-3 m-2" />
-                    <TextInput placeholder="Password" className="w-full px-3 py-3 m-2" />
+                    <TextInput type="password" placeholder="Password" className="w-full px-3 py-3 m-2" />
                 </div>
                 <Button variant="primary" className="mt-2" onClick={() => setShowAGBs(true)}>
                     Submit

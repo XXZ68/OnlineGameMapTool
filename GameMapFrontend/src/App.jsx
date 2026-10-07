@@ -14,13 +14,13 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         
         {/* Main Game Board Page */}
-        <Route path="/game" element={<Main />} />
+        <Route path="/api/game" element={<Main />} />
 
-        <Route path="/maps" element={<Maps />} />
+        <Route path="/api/Map" element={<Maps />} />
 
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/api/profile" element={<Profile />} />
 
-        <Route path="/char" element={<Character />} />
+        <Route path="/api/Character" element={<Character />} />
       </Routes>
     </Router>
   );

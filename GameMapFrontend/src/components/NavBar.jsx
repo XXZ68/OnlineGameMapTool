@@ -11,10 +11,10 @@ export default function NavBar() {
       {/* Navigation Links */}
       <ul className="flex items-center gap-6 m-0 p-0 list-none">
         <li>
-          <a href="/maps" className="text-gray-300 hover:text-white transition-colors text-sm">Map Managment</a>
+          <a href="/api/Map" className="text-gray-300 hover:text-white transition-colors text-sm">Map Managment</a>
         </li>
         <li>
-          <a href="/char" className="text-gray-300 hover:text-white transition-colors text-sm">Character Managment</a>
+          <a href="/api/Character" className="text-gray-300 hover:text-white transition-colors text-sm">Character Managment</a>
         </li>        
         <li>
           <a href="/" className="text-gray-300 hover:text-white transition-colors text-sm">Leave</a>
