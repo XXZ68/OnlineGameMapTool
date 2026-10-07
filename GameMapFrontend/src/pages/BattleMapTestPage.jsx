@@ -1,0 +1,295 @@
+import { useState, useEffect } from 'react';
+import ActiveMap from '../components/ActiveMap';
+
+const BACKEND_URL = 'http://localhost:5089';
+
+export default function BattleMapTestPage() {
+  const [maps, setMaps] = useState([]);
+  const [selectedMapId, setSelectedMapId] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [isDungeonMaster, setIsDungeonMaster] = useState(true);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const addLog = (message) => {
+    setLogs((prev) => [
+      `[${new Date().toLocaleTimeString()}] ${message}`,
+      ...prev.slice(0, 19), // Keep latest 20 logs
+    ]);
+  };
+
+  // 1. Fetch available maps from backend on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMaps() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/Map`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data = await res.json();
+        if (isMounted) {
+          setMaps(data);
+          if (data.length > 0) {
+            setSelectedMapId(data[0].id);
+            addLog(`Loaded ${data.length} maps. Selected: "${data[0].title || data[0].id}"`);
+          } else {
+            addLog('No maps found. Upload a map via POST /api/Map first.');
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          addLog(`Failed to fetch maps: ${err.message}`);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadMaps();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 2. Quick session generator to test real-time multiplayer features
+  const handleCreateTestSession = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/GameSession`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionName: `Test Session ${Math.floor(Math.random() * 1000)}`,
+          dungeonMasterId: 'dm-test-id-001',
+          dungeonMasterName: 'Dungeon Master',
+          initialMapId: selectedMapId || null,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Failed to create session: ${res.statusText}`);
+      const newSession = await res.json();
+      setSessionId(newSession.id);
+      addLog(`Session created! Code: ${newSession.joinCode || 'N/A'} (ID: ${newSession.id})`);
+    } catch (err) {
+      addLog(`Session creation error: ${err.message}`);
+    }
+  };
+
+  // Mock Current User object matching ActiveMap's expectations
+  const currentUser = {
+    playerId: isDungeonMaster ? 'dm-test-id-001' : 'player-test-id-002',
+    playerName: isDungeonMaster ? 'Dungeon Master' : 'Player One',
+    isDungeonMaster,
+    selectedCharacterId: null,
+  };
+
+  if (loading) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ color: '#e0a96d', fontSize: '18px', fontWeight: 'bold' }}>
+          Connecting to backend at {BACKEND_URL}...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      {/* --- TOP CONTROL BAR --- */}
+      <header style={controlBarStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontWeight: 'bold', color: '#e0a96d', fontSize: '14px' }}>
+            ⚔️ VTT Test Harness
+          </span>
+
+          {/* Map Selector */}
+          <label style={labelStyle}>
+            Map:
+            <select
+              value={selectedMapId}
+              onChange={(e) => {
+                setSelectedMapId(e.target.value);
+                addLog(`Switched map to ID: ${e.target.value}`);
+              }}
+              style={selectStyle}
+            >
+              {maps.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.title || `Map (${m.id.substring(0, 8)}...)`}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* DM / Player Role Switcher */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsDungeonMaster((prev) => !prev);
+              addLog(`Role changed to: ${!isDungeonMaster ? 'Dungeon Master' : 'Player'}`);
+            }}
+            style={{
+              ...buttonStyle,
+              background: isDungeonMaster ? '#7c2d12' : '#1e3a8a',
+              borderColor: isDungeonMaster ? '#b45309' : '#3b82f6',
+            }}
+          >
+            Role: {isDungeonMaster ? '👑 DM (TokenBox visible)' : '🛡️ Player (TokenBox hidden)'}
+          </button>
+        </div>
+
+        {/* Session Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {sessionId ? (
+            <span style={{ fontSize: '12px', color: '#86efac', fontFamily: 'monospace' }}>
+              Active Session: {sessionId.substring(0, 8)}...
+            </span>
+          ) : (
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>Standalone (No Session)</span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleCreateTestSession}
+            style={{ ...buttonStyle, background: '#15803d', borderColor: '#22c55e' }}
+          >
+            {sessionId ? 'New Session' : '+ Create Test Session'}
+          </button>
+
+          {sessionId && (
+            <button
+              type="button"
+              onClick={() => {
+                setSessionId('');
+                addLog('Cleared session. Operating in standalone mode.');
+              }}
+              style={{ ...buttonStyle, background: '#334155' }}
+            >
+              Leave Session
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* --- ACTIVE BATTLE MAP --- */}
+      {selectedMapId ? (
+        <ActiveMap
+          key={`${selectedMapId}-${sessionId}`}
+          mapId={selectedMapId}
+          sessionId={sessionId || null}
+          currentUser={currentUser}
+        />
+      ) : (
+        <div style={emptyStateStyle}>
+          <h2>No Battle Maps Found</h2>
+          <p style={{ color: '#94a3b8', maxWidth: '420px', textAlign: 'center' }}>
+            Upload a map image using your backend API at <code>POST /api/Map</code> (or Swagger UI at{' '}
+            <a href="http://localhost:5089/swagger" target="_blank" rel="noreferrer" style={{ color: '#e0a96d' }}>
+              http://localhost:5089/swagger
+            </a>
+            ) to test rendering.
+          </p>
+        </div>
+      )}
+
+      {/* --- FLOATING EVENT CONSOLE (Bottom-Left) --- */}
+      <aside style={logConsoleStyle}>
+        <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#cbd5e1' }}>Event Logs:</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          {logs.length === 0 ? (
+            <span style={{ color: '#64748b' }}>No events recorded yet.</span>
+          ) : (
+            logs.map((log, idx) => (
+              <span key={idx} style={{ color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                {log}
+              </span>
+            ))
+          )}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+// --- Inline Styles ---
+const containerStyle = {
+  width: '100vw',
+  height: '100vh',
+  background: '#090a0f',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const controlBarStyle = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '50px',
+  background: 'rgba(18, 18, 24, 0.92)',
+  backdropFilter: 'blur(8px)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '0 16px',
+  zIndex: 100,
+  boxSizing: 'border-box',
+};
+
+const labelStyle = {
+  fontSize: '12px',
+  color: '#cbd5e1',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+};
+
+const selectStyle = {
+  background: '#1e293b',
+  color: '#f8fafc',
+  border: '1px solid #475569',
+  padding: '4px 8px',
+  borderRadius: '4px',
+  fontSize: '12px',
+};
+
+const buttonStyle = {
+  color: '#ffffff',
+  border: '1px solid #475569',
+  padding: '5px 10px',
+  borderRadius: '4px',
+  fontSize: '12px',
+  cursor: 'pointer',
+  fontWeight: '500',
+};
+
+const emptyStateStyle = {
+  width: '100%',
+  height: '100%',
+  background: '#090a0f',
+  color: '#f8fafc',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const logConsoleStyle = {
+  position: 'absolute',
+  bottom: '16px',
+  left: '16px',
+  maxWidth: '420px',
+  maxHeight: '130px',
+  background: 'rgba(15, 23, 42, 0.88)',
+  backdropFilter: 'blur(6px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderRadius: '6px',
+  padding: '8px 12px',
+  fontSize: '11px',
+  fontFamily: 'monospace',
+  overflowY: 'auto',
+  zIndex: 100,
+  boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+};

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import TokenBox from './TokenBox';
 
 const BACKEND_URL = 'http://localhost:5089';
 
@@ -11,12 +12,11 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
   const [grid, setGrid] = useState(null);
   const [activeSpells, setActiveSpells] = useState([]);
   const [error, setError] = useState(null);
+  const [selectedToken, setSelectedToken] = useState(null);
 
   // References
   const hubConnectionRef = useRef(null);
   const mapContainerRef = useRef(null);
-  // Track current zoom scale for drop calculations (default 1)
-  const currentScaleRef = useRef(1);
 
   // Derived loading state
   const isLoading = !mapData || mapData.id !== mapId;
@@ -64,6 +64,9 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
       setTokens((prev) =>
         prev.map((t) => (t.id === tokenId ? { ...t, gridX: newGridX, gridY: newGridY } : t))
       );
+      setSelectedToken((prev) =>
+        prev && prev.id === tokenId ? { ...prev, gridX: newGridX, gridY: newGridY } : prev
+      );
     });
 
     connection.on('TokenSpawned', (newToken) => {
@@ -74,10 +77,14 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
       setTokens((prev) =>
         prev.map((t) => (t.id === tokenId ? { ...t, currentHp: newHp } : t))
       );
+      setSelectedToken((prev) =>
+        prev && prev.id === tokenId ? { ...prev, currentHp: newHp } : prev
+      );
     });
 
     connection.on('TokenRemoved', (tokenId) => {
       setTokens((prev) => prev.filter((t) => t.id !== tokenId));
+      setSelectedToken((prev) => (prev && prev.id === tokenId ? null : prev));
     });
 
     connection.on('GridUpdated', (updatedGrid) => {
@@ -118,11 +125,11 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
     };
   }, [sessionId, currentUser.playerId, currentUser.playerName]);
 
-  // --- 4. TOKEN DRAG & DROP WITH ZOOM CORRECTION ---
+  // --- 4. TOKEN DRAG & DROP WITH GEOMETRIC PROJECTION ---
   const canMoveToken = (token) => {
-    if (currentUser.isDungeonMaster) return true;
+    if (currentUser?.isDungeonMaster) return true;
     if (token.isLocked) return false;
-    return token.characterId === currentUser.selectedCharacterId;
+    return token.characterId === currentUser?.selectedCharacterId;
   };
 
   const handleDragStart = (e, token) => {
@@ -139,38 +146,95 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
 
   const handleDrop = async (e) => {
     e.preventDefault();
-    const tokenId = e.dataTransfer.getData('text/plain');
-    if (!tokenId || !grid || !mapContainerRef.current) return;
+    if (!grid || !mapContainerRef.current || !mapData) return;
 
-    // 1. Get bounding rect of the unzoomed container
-    const containerRect = mapContainerRef.current.getBoundingClientRect();
+    // 1. Get real-time post-transform bounding rectangle of the canvas
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
 
-    // 2. Adjust for CSS transform scale!
-    const scale = currentScaleRef.current || 1;
-    const dropX = (e.clientX - containerRect.left) / scale;
-    const dropY = (e.clientY - containerRect.top) / scale;
+    // 2. Exact unscaled canvas coordinates via viewport projection
+    const canvasX = ((e.clientX - rect.left) / rect.width) * mapData.widthInPixels;
+    const canvasY = ((e.clientY - rect.top) / rect.height) * mapData.heightInPixels;
 
-    // 3. Snap to grid indices
-    const targetGridX = Math.floor((dropX - (grid.offsetX || 0)) / grid.cellSizeInPixels);
-    const targetGridY = Math.floor((dropY - (grid.offsetY || 0)) / grid.cellSizeInPixels);
+    const cellSize = grid.cellSizeInPixels || 50;
 
-    // Optimistic UI update
-    setTokens((prev) =>
-      prev.map((t) => (t.id === tokenId ? { ...t, gridX: targetGridX, gridY: targetGridY } : t))
-    );
+    // 3. Offset by half cell so the center of the token lands where the cursor released
+    const tokenRadius = cellSize / 2;
+    const dropCenterX = canvasX - tokenRadius;
+    const dropCenterY = canvasY - tokenRadius;
 
-    // Sync via SignalR
-    if (hubConnectionRef.current) {
+    // 4. Snap to nearest grid index (allows negative/out-of-bounds numbers for staging outside map)
+    const targetGridX = Math.round((dropCenterX - (grid.offsetX || 0)) / cellSize);
+    const targetGridY = Math.round((dropCenterY - (grid.offsetY || 0)) / cellSize);
+
+    // --- CASE A: Spawning a Monster from TokenBox ---
+    const monsterSpawnData = e.dataTransfer.getData('application/vtt-spawn-monster');
+    if (monsterSpawnData) {
+      const monster = JSON.parse(monsterSpawnData);
       try {
-        await hubConnectionRef.current.invoke(
-          'MoveToken',
-          sessionId,
-          tokenId,
-          targetGridX,
-          targetGridY
-        );
+        const url = new URL(`${BACKEND_URL}/api/Token/map/${mapId}/spawn-monster`);
+        if (sessionId) url.searchParams.append('sessionId', sessionId);
+
+        await fetch(url.toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            monsterIndex: monster.monsterIndex,
+            gameSessionId: sessionId || null,
+            gridX: targetGridX,
+            gridY: targetGridY,
+            customName: monster.name,
+          }),
+        });
       } catch (err) {
-        console.error('Failed to sync token move:', err);
+        console.error('Failed to spawn monster:', err);
+      }
+      return;
+    }
+
+    // --- CASE B: Placing a Character from TokenBox ---
+    const characterPlaceData = e.dataTransfer.getData('application/vtt-place-character');
+    if (characterPlaceData && sessionId) {
+      const char = JSON.parse(characterPlaceData);
+      try {
+        const url = new URL(`${BACKEND_URL}/api/Token/map/${mapId}/place-character`);
+        url.searchParams.append('sessionId', sessionId);
+
+        await fetch(url.toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            characterId: char.characterId,
+            gameSessionId: sessionId,
+            gridX: targetGridX,
+            gridY: targetGridY,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to place character:', err);
+      }
+      return;
+    }
+
+    // --- CASE C: Moving an Existing Board Token ---
+    const tokenId = e.dataTransfer.getData('text/plain');
+    if (tokenId) {
+      setTokens((prev) =>
+        prev.map((t) => (t.id === tokenId ? { ...t, gridX: targetGridX, gridY: targetGridY } : t))
+      );
+
+      if (hubConnectionRef.current) {
+        try {
+          await hubConnectionRef.current.invoke(
+            'MoveToken',
+            sessionId,
+            tokenId,
+            targetGridX,
+            targetGridY
+          );
+        } catch (err) {
+          console.error('Failed to sync token move:', err);
+        }
       }
     }
   };
@@ -193,16 +257,15 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
         minScale={0.2}
         maxScale={4}
         centerOnInit={true}
-        wheel={{ step: 0.1 }}
-        panning={{ excluded: ['vtt-token'] }} // Prevent canvas panning while dragging a token!
-        onTransformed={(ref) => {
-          // Keep scale updated for drop calculations
-          currentScaleRef.current = ref.state.scale;
+        wheel={{
+          step: 0.001,
+          smoothStep: 0.002,
         }}
+        panning={{ excluded: ['vtt-token'] }}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
-            {/* --- FLOATING ZOOM CONTROLS --- */}
+            {/* FLOATING ZOOM CONTROLS */}
             <div
               style={{
                 position: 'absolute',
@@ -218,18 +281,10 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                 backdropFilter: 'blur(6px)',
               }}
             >
-              <button
-                onClick={() => zoomIn()}
-                style={buttonStyle}
-                title="Zoom In"
-              >
+              <button onClick={() => zoomIn()} style={buttonStyle} title="Zoom In">
                 +
               </button>
-              <button
-                onClick={() => zoomOut()}
-                style={buttonStyle}
-                title="Zoom Out"
-              >
+              <button onClick={() => zoomOut()} style={buttonStyle} title="Zoom Out">
                 -
               </button>
               <button
@@ -241,7 +296,7 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
               </button>
             </div>
 
-            {/* --- PAN & ZOOM CANVAS --- */}
+            {/* PAN & ZOOM CANVAS */}
             <TransformComponent wrapperStyle={{ width: '100%', height: '100%' }}>
               <div
                 ref={mapContainerRef}
@@ -251,13 +306,14 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                   position: 'relative',
                   width: mapData.widthInPixels,
                   height: mapData.heightInPixels,
-                  backgroundImage: `url(${mapData.imageUrl})`,
+                  backgroundImage: `url(${BACKEND_URL}${mapData.imageUrl})`,
                   backgroundSize: 'cover',
                   userSelect: 'none',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.8)',
+                  overflow: 'visible',
                 }}
               >
-                {/* --- SVG GRID OVERLAY --- */}
+                {/* SVG GRID OVERLAY */}
                 {grid && (
                   <svg
                     style={{
@@ -291,8 +347,14 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
 
                     {/* Spell Templates */}
                     {activeSpells.map((spell) => {
-                      const originX = (grid.offsetX || 0) + (spell.originGridX ?? spell.targetGridX ?? 0) * cellSize + cellSize / 2;
-                      const originY = (grid.offsetY || 0) + (spell.originGridY ?? spell.targetGridY ?? 0) * cellSize + cellSize / 2;
+                      const originX =
+                        (grid.offsetX || 0) +
+                        (spell.originGridX ?? spell.targetGridX ?? 0) * cellSize +
+                        cellSize / 2;
+                      const originY =
+                        (grid.offsetY || 0) +
+                        (spell.originGridY ?? spell.targetGridY ?? 0) * cellSize +
+                        cellSize / 2;
                       const radiusPx = (spell.radiusInCells || 1) * cellSize;
 
                       return (
@@ -311,9 +373,9 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                   </svg>
                 )}
 
-                {/* --- TOKENS LAYER --- */}
+                {/* TOKENS LAYER */}
                 {tokens.map((token) => {
-                  if (!token.isVisibleToPlayers && !currentUser.isDungeonMaster) {
+                  if (!token.isVisibleToPlayers && !currentUser?.isDungeonMaster) {
                     return null;
                   }
 
@@ -321,13 +383,19 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                   const left = (grid?.offsetX || 0) + token.gridX * cellSize;
                   const top = (grid?.offsetY || 0) + token.gridY * cellSize;
                   const draggable = canMoveToken(token);
+                  const isSelected = selectedToken?.id === token.id;
 
                   return (
                     <div
                       key={token.id}
-                      className="vtt-token" // Excluded class so dragging a token doesn't pan the canvas!
+                      className="vtt-token"
                       draggable={draggable}
                       onDragStart={(e) => handleDragStart(e, token)}
+                      onClick={() => {
+                        if (currentUser?.isDungeonMaster) {
+                          setSelectedToken(token);
+                        }
+                      }}
                       title={`${token.name} (${token.currentHp}/${token.maxHp} HP)`}
                       style={{
                         position: 'absolute',
@@ -341,9 +409,15 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                           : 'radial-gradient(circle, #e63946, #b7094c)',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
-                        border: draggable ? '2px solid #52b788' : '2px solid #333',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
-                        cursor: draggable ? 'grab' : 'default',
+                        border: isSelected
+                          ? '3px solid #f59e0b'
+                          : draggable
+                          ? '2px solid #52b788'
+                          : '2px solid #333',
+                        boxShadow: isSelected
+                          ? '0 0 10px #f59e0b'
+                          : '0 2px 6px rgba(0,0,0,0.6)',
+                        cursor: draggable ? 'grab' : 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -363,9 +437,13 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
                       >
                         <div
                           style={{
-                            width: `${Math.max(0, Math.min(100, (token.currentHp / token.maxHp) * 100))}%`,
+                            width: `${Math.max(
+                              0,
+                              Math.min(100, (token.currentHp / token.maxHp) * 100)
+                            )}%`,
                             height: '100%',
-                            background: token.currentHp / token.maxHp > 0.3 ? '#2dc653' : '#d90429',
+                            background:
+                              token.currentHp / token.maxHp > 0.3 ? '#2dc653' : '#d90429',
                           }}
                         />
                       </div>
@@ -377,6 +455,24 @@ export default function ActiveMap({ sessionId, mapId, currentUser }) {
           </>
         )}
       </TransformWrapper>
+
+      {/* GM TOKENBOX DRAWER */}
+      {currentUser?.isDungeonMaster && (
+        <TokenBox
+          sessionId={sessionId}
+          selectedToken={selectedToken}
+          onCloseInspector={() => setSelectedToken(null)}
+          onHpChanged={(id, newHp) => {
+            setTokens((prev) =>
+              prev.map((t) => (t.id === id ? { ...t, currentHp: newHp } : t))
+            );
+          }}
+          onTokenDeleted={(id) => {
+            setTokens((prev) => prev.filter((t) => t.id !== id));
+            setSelectedToken(null);
+          }}
+        />
+      )}
     </div>
   );
 }
