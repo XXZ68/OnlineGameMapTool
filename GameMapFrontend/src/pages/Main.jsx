@@ -1,9 +1,9 @@
 import { useState } from "react";
-import ActionBar from "../components/ActionBar";
-import { SimpleSectionCard } from "../components/SimpleSectionCard";
-import NotesForm from "../components/NotesForm";
-import Inventory from "../components/Inventory";
-import Actions from "../components/Actions";
+import ActionBar from "../components/gameComponents/ActionBar";
+import { SimpleSectionCard } from "../components/atoms/SimpleSectionCard";
+import NotesForm from "../components/gameComponents/NotesForm";
+import Inventory from "../components/gameComponents/Inventory";
+import Actions from "../components/gameComponents/Actions";
 import LayoutDM from "../layouts/LayoutDM";
 
 function Main() {

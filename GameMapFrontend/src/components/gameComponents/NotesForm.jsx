@@ -1,6 +1,6 @@
 
-import TextArea from "./TextArea";
-import Button from "./Button";
+import TextArea from "../atoms/TextArea";
+import Button from "../atoms/Button";
 
 
 export default function NotesForm() {

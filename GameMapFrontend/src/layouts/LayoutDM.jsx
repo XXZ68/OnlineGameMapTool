@@ -1,7 +1,7 @@
 import { useState } from "react";
-import NavBar from "../components/NavBar";
-import Sidebar from "../components/SideBar";
-import CreateGame from "../components/CreateGame";
+import NavBar from "../components/layoutComponents/NavBar";
+import Sidebar from "../components/layoutComponents/SideBar";
+import CreateGame from "../components/userActions/CreateGame";
 import CreateCampaign from "../components/CreateCampaign";
 
 export default function LayoutDM({ children }) {
